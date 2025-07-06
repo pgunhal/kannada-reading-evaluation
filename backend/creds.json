@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gen-lang-client-0847055216",
+  "private_key_id": "ade1a70babe66bd31855e7f4c89835fc49fa35b6",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDByqeSJnCfLuMj\nZlizyuq1H/dSVBfw3UGKlL74z0lwMVsC1XSiDs7XMVONTOa9OkkmHMSEM5M/2atu\nX8vGx/dTMzcnScp+g0sW8jgJH6vTK0HWvIoAjncj2RC0Vi28eXJfw5bYTpb95sPC\nadiAS0k3QN5bRP8cEYKlNW5ArXfhZzhbFztlBtOYBX9CYFT2gc8225MZ04ZxK2pj\nig/hKLBVuAyTkhoFFPPn2CyBWjg44FvaM2bA9ImYv/DWMGQ/4RAiAO1feHMU88rh\nNvoIg7VUXLhgbiFlXPb7lCwyKi82TujO/TIXU64V7K3fN+eLnDd0FIuKyW42At41\nNeZk5YlnAgMBAAECggEANeli5M281wv8NITseFgjI3BZJZYvctqauSrYVe+Uxpl0\ncD1hzRPBhyw5yj1yk4H7h5bJNN4EQOcVQgd0cUCAFa1R0qQ8qSVtZlzMKf2dl4mZ\nL1wUKEN58YcZlpHC94PxxaJr/JEggFIKc7Nuf4JyQ+TP9yQitHRKnBtZKLUZfKL2\npL+5jNIv1jgPusR07xo+m+VnPPVS00YZwt6IpsLlIDJlodpODlKgMR5bCcklv+Ts\n+/ItLgbZUGc+bzZij+RduY3uZTYHimiW1fJ4m2U22u2BdbypTrLXbkRFrRhKgom4\nPEy5ZKnd9QQQnqYqPPg8AY91WvIF99vCI9JhanpJAQKBgQDfYk5JsNN6PfTFBqFo\nc7lTv6HP3C76Bomdgj5mBoZzI8HFTsAVP1vrEfQU38S1tp38Rl18hLRF5q/fteUU\nG6t1e0+cuj0VTgK7GFTwiMQchLo//N8Hvc2MYLZSbCYKsbHUZDqRd1/kYooKxUfN\nODv9pX7WYwut5cy+o8zzuWRJ0QKBgQDeFj0BQQKITM/UXdXX5439kedhewXxDkim\n5h8hosGGR0+5OV0VnO/8FvNPkcyO2boMcOmrU+VmFDs3yhHGcve+Zrm9j7b5kpgU\nL6WC9SnxGbYQ//Lc1jsx+Z8Au5kZBUjLF+dHhxTjcKIGQCWr+UCluxpiclZIUYj+\nqUXT0sS1twKBgGzlM1zhAna49TWHAfA1WcblyC/YGl5wCW3rLBf4XlqKt89DkIfL\nFzgEzIPQgchDecidVL16w5a/2kSoG0AuLOtcbXbtoxFbsiEav21yfoeYfGLtFpxj\nfmxMSRTs+66C6TmskpCPLQPctYaCnXoBS91ea/J+3hary5+zohm96pHBAoGAUFRo\n4oA6Q0TNU7pRNBQMVvCkaa0O/B83hi7sicUODNzUaGHoWn32jA9dGKXbALyeQAvD\naXYiHqcouEg937MMC3Gqs3c9Ls6odXy6eEDnV879/O4nUVun866fpas1eEhiCRvv\nSv8APjgqUup29dplWMzxgTRsIyJi1AI0QKcXAccCgYEAunPqpplagOwdQlGTc/40\n2GrvTaT1jdqIEGdI8XMzq6tifsP3vrnkZjsbuKApdjeqnHYsaFcE80bUtQcLPX3s\nNe5xXzcXoGCOuLbGy8mA//iKeBmGXX/dqKl2HlR47mPU85jOA5uYcFvcY7BgB16e\nfB3Dcw5vWBtcc6ABELHqZNU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "kannada-kali@gen-lang-client-0847055216.iam.gserviceaccount.com",
+  "client_id": "104743133439054977116",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/kannada-kali%40gen-lang-client-0847055216.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
