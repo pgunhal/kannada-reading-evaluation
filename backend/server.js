@@ -1,26 +1,41 @@
-// require("dotenv").config({ path: "./.env" });
-
+const path = require("path");
+const dotenv = require("dotenv");
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const express = require("express");
-const dotenv = require("dotenv");
-dotenv.config({ path: "./.env" });
 const cors = require("cors");
-const path = require("path");
-const transcribeRoute = require("./routes/transcribeRoute");
 
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+const transcribeRoute = require("./routes/transcribeRoute");
+const metricRoute = require("./routes/metricRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({ origin: "http://localhost:3000" }));
+const ORIGINS = [
+  process.env.FRONTEND_ORIGIN || "http://localhost:3000",
+  "http://127.0.0.1:3000"
+];
+
+app.use(cors({
+  origin: ORIGINS,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false
+}));
+
+// make sure preflights get the headers
+app.options("*", cors({
+  origin: ORIGINS,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false
+}));
+
 app.use(express.json());
 
-// Routes
 app.use("/api/transcribe", transcribeRoute);
+app.use("/api/metrics", metricRoute);
 
-// Startup
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
