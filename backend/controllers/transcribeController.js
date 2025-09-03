@@ -23,11 +23,15 @@ exports.handleTranscription = async (req, res) => {
       .map((r) => r.alternatives[0].transcript)
       .join(" ");
     
+    const confidence = response.results
+      .map((r) => r.alternatives[0].confidence)
+      .join(" ");    console.log(confidence)
+    
     console.log(transcription);
     console.log("DONE");
 
     fs.unlinkSync(filePath); // delete temp file
-    res.json({ transcription });
+    res.json({ "transcription": transcription, "confidence" : confidence });
   } catch (err) {
     console.error("STT error:", err);
     res.status(500).json({ error: "Transcription failed." });
