@@ -14,7 +14,6 @@ const {
 // They do not accept audio; audio goes to /api/transcribe.
 router.post("/nled", nled);
 router.post("/ldr", ldr);
-router.post("/match-ratio", matchRatio);
 router.post("/asr-confidence", asrConfidence);
 router.post("/suffix-accuracy", suffixAccuracy);
 router.post("/score-all", scoreAll);

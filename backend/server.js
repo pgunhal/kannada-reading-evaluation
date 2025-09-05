@@ -7,6 +7,8 @@ const cors = require("cors");
 
 const transcribeRoute = require("./routes/transcribeRoute");
 const metricRoute = require("./routes/metricRoute");
+const storyRoute = require("./routes/storyRoute");
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +37,8 @@ app.use(express.json());
 
 app.use("/api/transcribe", transcribeRoute);
 app.use("/api/metrics", metricRoute);
+app.use("/api/story", storyRoute);
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);

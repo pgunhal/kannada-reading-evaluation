@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { db, storage } from "../firebaseConfig";
-import {
-  collection,
-  getDoc,
-  getDocs,
-  setDoc,
-  doc
-} from "firebase/firestore";
-import { listAll, getDownloadURL, ref as storageRef } from "firebase/storage";
+import { db } from "../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
+import { functions } from "../firebaseConfig";
 
 export default function AdminDashboard() {
   const [week, setWeek] = useState("");
   const [stories, setStories] = useState([]);
   const [selectedStory, setSelectedStory] = useState("");
-  const [audios, setAudios] = useState({ CUP: [], MIL: [], FRE: [] });
+  const [studentScores, setStudentScores] = useState([]);
 
+  // 🔹 Load stories
   useEffect(() => {
     async function loadStories() {
       const snapshot = await getDocs(collection(db, "stories"));
@@ -24,100 +20,208 @@ export default function AdminDashboard() {
       });
       setStories(storyList);
     }
-
     loadStories();
   }, []);
 
+  // 🔹 Save story/week via callable function
   const handleSetWeekStory = async () => {
     if (!week || !selectedStory) return alert("Fill both fields");
 
-    const prevDoc = await getDoc(doc(db, "adminSettings", "story"));
-    if (prevDoc.exists()) {
-      const { storyName, week: prevWeek } = prevDoc.data();
-      await setDoc(doc(db, "adminSettings", "prev_story"), {
-        storyName,
-        week: prevWeek,
-      });
-    }
+    try {
+      const setStory = httpsCallable(functions, "setWeekStory");
+      await setStory({ week, storyName: selectedStory });
 
-    await setDoc(doc(db, "adminSettings", "story"), {
-      storyName: selectedStory,
-      week,
+      alert("Week and Story updated!");
+    } catch (err) {
+      console.error("Error setting story:", err);
+      alert("Failed to update story: " + err.message);
+    }
+  };
+
+  // 🔹 Load student scores
+  const fetchScores = async () => {
+    const snap = await getDocs(collection(db, "scores"));
+    const scores = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // group by uid
+    const grouped = {};
+    scores.forEach((s) => {
+      if (!grouped[s.uid])
+        grouped[s.uid] = { weeks: {}, attempts: {}, total: 0, count: 0 };
+      grouped[s.uid].weeks[s.week] = s.score;
+      grouped[s.uid].attempts[s.week] = s.attempts;
+      grouped[s.uid].total += s.score;
+      grouped[s.uid].count += 1;
     });
 
-    alert("Week and Story updated!");
+    const students = Object.entries(grouped).map(([uid, data]) => ({
+      uid,
+      weeks: data.weeks,
+      attempts: data.attempts,
+      average: data.total / data.count,
+      weekCount: Object.keys(data.weeks).length, // ✅ count of weeks recorded
+    }));
+
+    setStudentScores(students);
   };
 
-  const handleFilterAudios = async () => {
-    if (!week) return alert("Enter a valid week");
-
-    const allFiles = await listAll(storageRef(storage));
-    const filtered = { CUP: [], MIL: [], FRE: [] };
-
-    await Promise.all(
-      allFiles.items.map(async (itemRef) => {
-        const match = itemRef.name.match(/week(\d+)/i);
-        const weekFromFile = match ? match[1] : null;
-
-        if (weekFromFile === week) {
-          const url = await getDownloadURL(itemRef);
-          const prefix = itemRef.name.slice(0, 3).toUpperCase();
-          if (filtered[prefix]) filtered[prefix].push({ name: itemRef.name, url });
-        }
-      })
-    );
-
-    setAudios(filtered);
-  };
-
-  const renderAudioList = (center) => (
-    <div>
-      <h3>{center}</h3>
-      <ul>
-        {audios[center]?.map((file, idx) => (
-          <li key={idx}>
-            <audio controls src={file.url}></audio>
-            <p>{file.name}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  useEffect(() => {
+    fetchScores();
+  }, []);
 
   return (
-    <div className="container">
-      <h1>Admin Dashboard</h1>
+    <div style={{ padding: 20, maxWidth: 1000, margin: "0 auto" }}>
+      {/* Title in white card */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 30,
+          boxShadow: "0 3px 10px rgba(0,0,0,0.12)",
+          textAlign: "center",
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: 28, fontWeight: "bold" }}>
+          Teacher Dashboard
+        </h1>
+      </div>
 
-      <h2>Set Story for a Week</h2>
-      <input
-        type="number"
-        placeholder="Enter week number"
-        value={week}
-        onChange={(e) => setWeek(e.target.value)}
-      />
-      <select onChange={(e) => setSelectedStory(e.target.value)} value={selectedStory}>
-        <option value="">Select story</option>
-        {stories.map((story) => (
-          <option key={story.id} value={story.id}>
-            {story.title}
-          </option>
-        ))}
-      </select>
-      <button onClick={handleSetWeekStory}>Set Week & Story</button>
+      {/* Manage story */}
+      <div
+        style={{
+          background: "#fff",
+          padding: 24,
+          borderRadius: 12,
+          marginBottom: 30,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ marginBottom: 20 }}>Set Story</h2>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <input
+            type="number"
+            placeholder="Week #"
+            value={week}
+            onChange={(e) => setWeek(e.target.value)}
+            style={{
+              flex: "1",
+              padding: "10px 12px",
+              border: "1px solid #ccc",
+              borderRadius: 8,
+              minWidth: 120,
+            }}
+          />
+          <select
+            onChange={(e) => setSelectedStory(e.target.value)}
+            value={selectedStory}
+            style={{
+              flex: "2",
+              padding: "10px 12px",
+              border: "1px solid #ccc",
+              borderRadius: 8,
+              minWidth: 200,
+            }}
+          >
+            <option value="">Select story</option>
+            {stories.map((story) => (
+              <option key={story.id} value={story.id}>
+                {story.title}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleSetWeekStory}
+            style={{
+              flexShrink: 0,
+              padding: "10px 20px",
+              background: "#5cb85c",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            Set Week & Story
+          </button>
+        </div>
+      </div>
 
-      <h2>Filter Audio Uploads</h2>
-      <input
-        type="number"
-        placeholder="Enter week to filter"
-        value={week}
-        onChange={(e) => setWeek(e.target.value)}
-      />
-      <button onClick={handleFilterAudios}>Filter Audios</button>
-
-      <div>
-        {renderAudioList("CUP")}
-        {renderAudioList("MIL")}
-        {renderAudioList("FRE")}
+      {/* Student performance */}
+      <div
+        style={{
+          background: "#fff",
+          padding: 24,
+          borderRadius: 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ marginBottom: 20 }}>Student Scores</h2>
+        {studentScores.length === 0 ? (
+          <p>No scores yet.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 20 }}>
+            {studentScores.map((s) => (
+              <div
+                key={s.uid}
+                style={{
+                  background: "#fafafa",
+                  border: "1px solid #eee",
+                  borderRadius: 10,
+                  padding: 16,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: "0 0 8px 0",
+                    fontSize: 18,
+                    fontWeight: "600",
+                  }}
+                >
+                  {s.uid}
+                </h3>
+                <p style={{ margin: "4px 0" }}>
+                  <b>Average:</b> {s.average.toFixed(3)}
+                </p>
+                <p style={{ margin: "4px 0" }}>
+                  <b>Weeks Recorded:</b> {s.weekCount}
+                </p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  {Object.entries(s.weeks).map(([week, score]) => (
+                    <div
+                      key={week}
+                      style={{
+                        flex: "0 0 160px",
+                        padding: 14,
+                        borderRadius: 8,
+                        background: score > 0.7 ? "#eaf7ea" : "#fdeaea",
+                        border: "1px solid #ddd",
+                        textAlign: "center",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <h4 style={{ margin: 0, fontSize: 16 }}>Week {week}</h4>
+                      <p
+                        style={{
+                          margin: "6px 0",
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        {score.toFixed(3)}
+                      </p>
+                      <p style={{ fontSize: 12, margin: 0, color: "#555" }}>
+                        Attempts: {s.attempts[week]}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -12,7 +12,10 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@google-cloud/speech": "^7.1.0",
+        "@ffmpeg-installer/ffmpeg": "^1.1.0",
+        "@ffprobe-installer/ffprobe": "^2.1.2",
+        "@google-cloud/speech": "^7.2.0",
+        "@google-cloud/storage": "^7.17.0",
         "bcryptjs": "^2.4.3",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
