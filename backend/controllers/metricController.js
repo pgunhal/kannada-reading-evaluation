@@ -153,62 +153,123 @@ exports.suffixAccuracy = async (req, res) => res.json(computeSuffix(req.body));
 
 
 
+// exports.scoreAll = async (req, res) => {
+  // try {
+  //   const nledRes = computeNLED(req.body);
+  //   const ldrRes = computeLDR(req.body);
+  //   const asrRes = computeASR(req.body);
+  //   const suffixRes = computeSuffix(req.body);
+
+  //   const simNLED = 1- nledRes.value;
+  //   const simLDR = 1 - ldrRes.value;
+  //   const asrVal = asrRes.value;
+  //   const sufVal = suffixRes.value;
+
+  //   // new simple length metric
+  //   const refText = resolveRef(req.body);
+  //   const refLen = refText.length;
+  //   const hypLen = req.body?.transcription.length;
+  //   console.log("Length check -> ref:", refLen, " hyp:", hypLen);
+
+  //   const tolerance = 10; // allow ±10 tokens difference
+  //   const lengthMatch = Math.abs(refLen - hypLen) <= tolerance ? 1 : 0;
+
+  //   const pieces = [simNLED, simLDR, asrVal, sufVal, lengthMatch];
+  //   combined = pieces.reduce((a, b) => a + b, 0) / pieces.length;
+  //   if(combined < 0.8)
+  //       combined += 0.2;
+  //   const threshold = 0.7;
+  //   passed = combined >= threshold;
+
+  //   if(hypLen == 0) {
+  //       passed = false;
+  //       combined = 0; 
+  //   }
+
+  //   console.log(nledRes, ldrRes, asrRes, suffixRes, lengthMatch);
+
+  //   // if(lengthMatch != 1) { //length is not right
+  //   //     passed = false;
+  //   //     combined = 0; 
+  //   // }
+
+  //   res.json({
+  //     nled: nledRes,
+  //     ldr: ldrRes,
+  //     asr_confidence: asrRes,
+  //     suffix_accuracy: suffixRes,
+  //     length_match: { metric: "length_match", value: lengthMatch, refLen, hypLen },
+  //     combined: {
+  //       metric: "combined_avg",
+  //       value: combined,
+  //       passed,
+  //       threshold,
+  //       components: { simNLED, simLDR, asrConfidence: asrVal, suffixAccuracy: sufVal, lengthMatch }
+  //     }
+  //   });
+  // } catch (e) {
+  //   console.error("scoreAll error", e);
+  //   res.status(500).json({ error: "scoreAll failed" });
+  // }
+
+
 exports.scoreAll = async (req, res) => {
   try {
-    const nledRes = computeNLED(req.body);
-    const ldrRes = computeLDR(req.body);
-    const asrRes = computeASR(req.body);
-    const suffixRes = computeSuffix(req.body);
+    const transcription = normalizeKannada(req.body?.transcription || "");
+    const refText = normalizeKannada(resolveRef(req.body));
 
-    const simNLED = 1- nledRes.value;
-    const simLDR = 1 - ldrRes.value;
-    const asrVal = asrRes.value;
-    const sufVal = suffixRes.value;
-
-    // new simple length metric
-    const refText = resolveRef(req.body);
-    const refLen = refText.length;
-    const hypLen = req.body?.transcription.length;
-    console.log("Length check -> ref:", refLen, " hyp:", hypLen);
-
-    const tolerance = 10; // allow ±10 tokens difference
-    const lengthMatch = Math.abs(refLen - hypLen) <= tolerance ? 1 : 0;
-
-    const pieces = [simNLED, simLDR, asrVal, sufVal, lengthMatch];
-    combined = pieces.reduce((a, b) => a + b, 0) / pieces.length;
-    if(combined < 0.8)
-        combined += 0.2;
-    const threshold = 0.7;
-    passed = combined >= threshold;
-
-    if(hypLen == 0) {
-        passed = false;
-        combined = 0; 
+    // 🔹 Auto-fail if empty transcription
+    if (!transcription || transcription.length === 0) {
+      return res.json({
+        combined: {
+          metric: "combined_simple",
+          value: 0,
+          passed: false,
+          threshold: 0.65,
+        },
+        reason: "No transcription",
+      });
     }
 
-    console.log(nledRes, ldrRes, asrRes, suffixRes, lengthMatch);
+    // 🔹 Length check (too short → fail)
+    if (transcription.length < refText.length * 0.3) {
+      return res.json({
+        combined: {
+          metric: "combined_simple",
+          value: 0,
+          passed: false,
+          threshold: 0.65,
+        },
+        reason: "Recording too short",
+      });
+    }
 
-    // if(lengthMatch != 1) { //length is not right
-    //     passed = false;
-    //     combined = 0; 
-    // }
+    // 🔹 Compute similarity with Levenshtein
+    const edits = levenshtein.get(refText, transcription);
+    const maxLen = Math.max(refText.length, transcription.length, 1);
+    const similarity = 1 - edits / maxLen; // normalized similarity
+
+    const threshold = 0.65;
+    const passed = similarity >= threshold;
+
+    console.log(similarity);
 
     res.json({
-      nled: nledRes,
-      ldr: ldrRes,
-      asr_confidence: asrRes,
-      suffix_accuracy: suffixRes,
-      length_match: { metric: "length_match", value: lengthMatch, refLen, hypLen },
+      transcription,
+      reference: refText,
+      similarity: { metric: "levenshtein_similarity", value: similarity },
       combined: {
-        metric: "combined_avg",
-        value: combined,
+        metric: "combined_simple",
+        value: similarity,
         passed,
         threshold,
-        components: { simNLED, simLDR, asrConfidence: asrVal, suffixAccuracy: sufVal, lengthMatch }
-      }
+      },
     });
   } catch (e) {
     console.error("scoreAll error", e);
     res.status(500).json({ error: "scoreAll failed" });
   }
 };
+
+
+

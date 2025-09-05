@@ -12,8 +12,15 @@ export default function AdminLogin() {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/admin/dashboard");
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const token = await userCred.user.getIdTokenResult();
+
+      if (token.claims.isAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        setError("You do not have admin access.");
+        await auth.signOut();
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -22,8 +29,18 @@ export default function AdminLogin() {
   return (
     <div id="authContainer">
       <h2>Admin Login</h2>
-      <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
       <button onClick={handleLogin}>Login</button>
       <p id="error-message">{error}</p>
     </div>

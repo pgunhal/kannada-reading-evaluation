@@ -16,26 +16,37 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCred.user, { displayName: name });
+const handleSignup = async (e) => {
+  e.preventDefault();
 
-      // Save extra info to Firestore
-      await setDoc(doc(db, "users", userCred.user.uid), {
-        name,
-        parentName,
-        center,
-        email,
-      });
+  // ✅ Confirmation dialog
+  const confirm = window.confirm(
+    "By creating an account, you agree that you have signed the waiver and consent to recording and storage as defined in the waiver."
+  );
 
-      alert("Account created successfully!");
-      navigate("/"); // redirect to login after signup
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  if (!confirm) {
+    return; // stop signup if they click "Cancel"
+  }
+
+  try {
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(userCred.user, { displayName: name });
+
+    // Save extra info to Firestore
+    await setDoc(doc(db, "users", userCred.user.uid), {
+      name,
+      parentName,
+      center,
+      email,
+    });
+
+    alert("Account created successfully!");
+    navigate("/"); // redirect to login after signup
+  } catch (err) {
+    setError(err.message);
+  }
+};
+
 
   return (
     <div
@@ -54,7 +65,7 @@ export default function SignupPage() {
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           width: "100%",
-          maxWidth: "450px", // ✅ same width as login
+          maxWidth: "450px",
           textAlign: "center",
         }}
       >
@@ -71,105 +82,117 @@ export default function SignupPage() {
 
         {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
-        <form
-          onSubmit={handleSignup}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "15px",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Student Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "100%",
-            }}
-          />
+<form
+  onSubmit={handleSignup}
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
+  }}
+>
+  <input
+    type="text"
+    placeholder="Student Name"
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+    required
+    style={{
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "block",
+    }}
+  />
 
-          <input
-            type="text"
-            placeholder="Parent's Name"
-            value={parentName}
-            onChange={(e) => setParentName(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "100%",
-            }}
-          />
+  <input
+    type="text"
+    placeholder="Parent's Name"
+    value={parentName}
+    onChange={(e) => setParentName(e.target.value)}
+    required
+    style={{
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "block",
+    }}
+  />
 
-          <select
-            value={center}
-            onChange={(e) => setCenter(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "100%",
-            }}
-          >
-            <option value="">Select Center</option>
-            <option value="Cupertino">Cupertino</option>
-            <option value="Milpitas">Milpitas</option>
-            <option value="Fremont">Fremont</option>
-          </select>
+  <select
+    value={center}
+    onChange={(e) => setCenter(e.target.value)}
+    required
+    style={{
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "block",
+      backgroundColor: "#fff",
+      appearance: "none", // makes dropdown behave more like input
+    }}
+  >
+    <option value="">Select Center</option>
+    <option value="Cupertino">Cupertino</option>
+    <option value="Milpitas">Milpitas</option>
+  </select>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "100%",
-            }}
-          />
+  <input
+    type="email"
+    placeholder="Email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    required
+    style={{
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "block",
+    }}
+  />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "100%",
-            }}
-          />
+  <input
+    type="password"
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+    style={{
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "block",
+    }}
+  />
 
-          <button
-            type="submit"
-            style={{
-              padding: "12px",
-              background: "#5cb85c",
-              color: "#fff",
-              fontWeight: "bold",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              marginTop: "10px",
-              fontSize: "16px",
-              width: "100%", // ✅ full width button
-            }}
-          >
-            Sign Up
-          </button>
-        </form>
+  <button
+    type="submit"
+    style={{
+      padding: "12px",
+      background: "#5cb85c",
+      color: "#fff",
+      fontWeight: "bold",
+      border: "none",
+      borderRadius: "8px",
+      cursor: "pointer",
+      marginTop: "10px",
+      fontSize: "16px",
+      width: "100%",
+    }}
+  >
+    Sign Up
+  </button>
+</form>
+
 
         {/* 🔹 Navigation back to login */}
         <p style={{ marginTop: "15px" }}>

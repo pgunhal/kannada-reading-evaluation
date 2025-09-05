@@ -107,33 +107,40 @@ export default function AudioRecorder({ refText, storyId, week, user, onScoreSav
 
       setMetrics(sc.data || null);
 
-      // ✅ Save to Firestore
-      if (sc.data && user) {
-        const scoresRef = collection(db, "scores");
-        const q = query(scoresRef, where("uid", "==", user.uid), where("week", "==", week || "NA"));
-        const snap = await getDocs(q);
+// ✅ Save to Firestore
+if (sc.data && user) {
+  const scoresRef = collection(db, "scores");
+  const q = query(
+    scoresRef,
+    where("uid", "==", user.uid),
+    where("week", "==", week || "NA")
+  );
+  const snap = await getDocs(q);
 
-        if (!snap.empty) {
-          const existingDoc = snap.docs[0];
-          const existing = existingDoc.data();
-          await updateDoc(doc(db, "scores", existingDoc.id), {
-            attempts: (existing.attempts || 0) + 1,
-            score: Math.max(existing.score || 0, sc.data.combined?.value || 0),
-            updatedAt: serverTimestamp(),
-          });
-        } else {
-          await addDoc(scoresRef, {
-            uid: user.uid,
-            week: week || "NA",
-            score: sc.data.combined?.value || 0,
-            passed: sc.data.combined?.passed || false,
-            attempts: 1,
-            createdAt: serverTimestamp(),
-          });
-        }
+  if (!snap.empty) {
+    const existingDoc = snap.docs[0];
+    const existing = existingDoc.data();
+    await updateDoc(doc(db, "scores", existingDoc.id), {
+      attempts: (existing.attempts || 0) + 1,
+      score: Math.max(existing.score || 0, sc.data.combined?.value || 0),
+      updatedAt: serverTimestamp(),
+      name: user.displayName || "",   // 🔹 store student name
+    });
+  } else {
+    await addDoc(scoresRef, {
+      uid: user.uid,
+      name: user.displayName || "",   // 🔹 store student name
+      week: week || "NA",
+      score: sc.data.combined?.value || 0,
+      passed: sc.data.combined?.passed || false,
+      attempts: 1,
+      createdAt: serverTimestamp(),
+    });
+  }
 
-        if (onScoreSaved) onScoreSaved(); // notify Dashboard to refresh
-      }
+  if (onScoreSaved) onScoreSaved(); // notify Dashboard to refresh
+}
+
     } catch (e) {
       console.error(e);
       setErrMsg(e?.response?.data?.error || "Upload or scoring failed.");
@@ -176,8 +183,10 @@ export default function AudioRecorder({ refText, storyId, week, user, onScoreSav
     <li><b>Click Stop </b> to end recording. Your audio will appear below.</li>
     <li><b>Click Upload & Score </b> to submit and see your score.</li>
     <li>A <b>70% score</b> is required to pass.</li>
-    <li>Scores are uploaded automatically and show when the page is reloaded.</li>
+    <li>Scores are uploaded <b>automatically</b> (reload page to show).</li>
     <li>Re-record attempts are <b>counted</b>, but do not lower the score.</li>
+    <li>If there is a technical issue, email <b>kkalisite@gmail.com</b> for support.</li>
+
   </ul>
 </div>
 
@@ -227,12 +236,12 @@ export default function AudioRecorder({ refText, storyId, week, user, onScoreSav
           </div>
           <div style={{ fontSize: 12, opacity: 0.7 }}>Threshold: {threshold.toFixed(2)}</div>
 
-          {!passed && transcript && (
+          {/* {!passed && transcript && (
             <div style={{ marginTop: 16, background: "#fff3f3", padding: 10, borderRadius: 8 }}>
               <h4>Transcription</h4>
               <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>{transcript}</pre>
             </div>
-          )}
+          )} */}
         </div>
       )}
     </div>

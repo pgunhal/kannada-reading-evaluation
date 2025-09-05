@@ -1,14 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const [week, setWeek] = useState("");
   const [stories, setStories] = useState([]);
   const [selectedStory, setSelectedStory] = useState("");
   const [studentScores, setStudentScores] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+
+  // 🔹 Check admin status
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        navigate("/admin/login");
+        return;
+      }
+      const token = await user.getIdTokenResult(true);
+      if (!token.claims.isAdmin) {
+        alert("Access denied: Admins only");
+        navigate("/");
+      } else {
+        setLoading(false);
+      }
+    };
+    checkAdmin();
+  }, [navigate]);
 
   // 🔹 Load stories
   useEffect(() => {
@@ -38,12 +61,19 @@ export default function AdminDashboard() {
     }
   };
 
-  // 🔹 Load student scores
-  const fetchScores = async () => {
-    const snap = await getDocs(collection(db, "scores"));
-    const scores = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  // 🔹 Load users + scores and join them
+  const fetchData = async () => {
+    // load users
+    const userSnap = await getDocs(collection(db, "users"));
+    const userMap = {};
+    userSnap.forEach((doc) => {
+      userMap[doc.id] = doc.data(); // { name, parentName, center, email }
+    });
 
-    // group by uid
+    // load scores
+    const scoreSnap = await getDocs(collection(db, "scores"));
+    const scores = scoreSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
     const grouped = {};
     scores.forEach((s) => {
       if (!grouped[s.uid])
@@ -54,20 +84,26 @@ export default function AdminDashboard() {
       grouped[s.uid].count += 1;
     });
 
+    // join with userMap
     const students = Object.entries(grouped).map(([uid, data]) => ({
       uid,
+      user: userMap[uid] || null,
       weeks: data.weeks,
       attempts: data.attempts,
       average: data.total / data.count,
-      weekCount: Object.keys(data.weeks).length, // ✅ count of weeks recorded
+      weekCount: Object.keys(data.weeks).length,
     }));
 
     setStudentScores(students);
   };
 
   useEffect(() => {
-    fetchScores();
+    fetchData();
   }, []);
+
+  if (loading) {
+    return <div>Checking admin permissions...</div>;
+  }
 
   return (
     <div style={{ padding: 20, maxWidth: 1000, margin: "0 auto" }}>
@@ -173,15 +209,14 @@ export default function AdminDashboard() {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
                 }}
               >
-                <h3
-                  style={{
-                    margin: "0 0 8px 0",
-                    fontSize: 18,
-                    fontWeight: "600",
-                  }}
-                >
-                  {s.uid}
+                <h3 style={{ margin: "0 0 8px 0", fontSize: 18, fontWeight: "600" }}>
+                  {s.user ? s.user.name : s.uid}
                 </h3>
+                {s.user && (
+                  <p style={{ margin: "2px 0", fontSize: 14, color: "#555" }}>
+                    Parent: {s.user.parentName} | Center: {s.user.center}
+                  </p>
+                )}
                 <p style={{ margin: "4px 0" }}>
                   <b>Average:</b> {s.average.toFixed(3)}
                 </p>
