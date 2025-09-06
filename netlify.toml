@@ -1,0 +1,17 @@
+[[redirects]]
+  # Redirect all requests to index.html so React Router can handle routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build]
+  # Set the base directory for the build to the client folder
+  base    = "client"
+  # Publish the built site from the client/build directory
+  publish = "client/build"
+  # The command used to build the React application
+  command = "npm run build"
+
+  # Node.js environment version can be specified here if needed
+  # [build.environment]
+  #   NODE_VERSION = "20"
