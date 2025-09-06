@@ -126,6 +126,7 @@ if (sc.data && user) {
       updatedAt: serverTimestamp(),
       name: user.displayName || "",   // 🔹 store student name
     });
+    console.log("updated attempt");
   } else {
     await addDoc(scoresRef, {
       uid: user.uid,
@@ -136,6 +137,7 @@ if (sc.data && user) {
       attempts: 1,
       createdAt: serverTimestamp(),
     });
+    console.log("created new attempt");
   }
 
   if (onScoreSaved) onScoreSaved(); // notify Dashboard to refresh

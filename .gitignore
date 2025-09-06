@@ -4,3 +4,4 @@ gen-lang-client-0847055216-ade1a70babe6.json
 backend/creds.json
 admin-scripts/*
 client/.env
+backend/.env
