@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 
 const ORIGINS = [
   process.env.FRONTEND_ORIGIN || "http://localhost:3000",
-  "http://127.0.0.1:3000"
+  "http://127.0.0.1:3000", "https://bakannadakali.netlify.app"
 ];
 
 app.use(cors({
