@@ -16,7 +16,7 @@ import {
 } from "firebase/firestore";
 import axios from "axios";
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL || "http://localhost:5050";
+const BACKEND = process.env.REACT_APP_BACKEND_URL || "https://bakannadakali.onrender.com";
 
 export default function AudioRecorder({ refText, storyId, week, user, onScoreSaved }) {
   const [recorder, setRecorder] = useState(null);
