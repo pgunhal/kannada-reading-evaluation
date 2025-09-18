@@ -16,37 +16,39 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-const handleSignup = async (e) => {
-  e.preventDefault();
+  const handleSignup = async (e) => {
+    e.preventDefault();
 
-  // ✅ Confirmation dialog
-  const confirm = window.confirm(
-    "By creating an account, you agree that you have signed the waiver and consent to recording and storage as defined in the waiver."
-  );
+    const confirm = window.confirm(
+      "By creating an account, you agree that you have signed the waiver and consent to recording and storage as defined in the waiver."
+    );
+    if (!confirm) return;
 
-  if (!confirm) {
-    return; // stop signup if they click "Cancel"
-  }
+    try {
+      // 1. Create Auth account
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-  try {
-    const userCred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(userCred.user, { displayName: name });
+      // 2. Set displayName in Firebase Auth
+      await updateProfile(userCred.user, { displayName: name });
 
-    // Save extra info to Firestore
-    await setDoc(doc(db, "users", userCred.user.uid), {
-      name,
-      parentName,
-      center,
-      email,
-    });
+      // 3. Write profile into Firestore users/{uid}
+      await setDoc(
+        doc(db, "users", userCred.user.uid),
+        {
+          name,
+          parentName,
+          center,
+          email,
+        },
+        { merge: true } // ensure safe updates if re-registered
+      );
 
-    alert("Account created successfully!");
-    navigate("/"); // redirect to login after signup
-  } catch (err) {
-    setError(err.message);
-  }
-};
-
+      alert("Account created successfully!");
+      navigate("/"); // go to login page
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   return (
     <div
@@ -82,119 +84,59 @@ const handleSignup = async (e) => {
 
         {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
 
-<form
-  onSubmit={handleSignup}
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  }}
->
-  <input
-    type="text"
-    placeholder="Student Name"
-    value={name}
-    onChange={(e) => setName(e.target.value)}
-    required
-    style={{
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      width: "100%",
-      boxSizing: "border-box",
-      display: "block",
-    }}
-  />
+        <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+          <input
+            type="text"
+            placeholder="Student Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            style={inputStyle}
+          />
 
-  <input
-    type="text"
-    placeholder="Parent's Name"
-    value={parentName}
-    onChange={(e) => setParentName(e.target.value)}
-    required
-    style={{
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      width: "100%",
-      boxSizing: "border-box",
-      display: "block",
-    }}
-  />
+          <input
+            type="text"
+            placeholder="Parent's Name"
+            value={parentName}
+            onChange={(e) => setParentName(e.target.value)}
+            required
+            style={inputStyle}
+          />
 
-  <select
-    value={center}
-    onChange={(e) => setCenter(e.target.value)}
-    required
-    style={{
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      width: "100%",
-      boxSizing: "border-box",
-      display: "block",
-      backgroundColor: "#fff",
-      appearance: "none", // makes dropdown behave more like input
-    }}
-  >
-    <option value="">Select Center</option>
-    <option value="Cupertino">Cupertino</option>
-    <option value="Milpitas">Milpitas</option>
-  </select>
+          <select
+            value={center}
+            onChange={(e) => setCenter(e.target.value)}
+            required
+            style={{ ...inputStyle, backgroundColor: "#fff", appearance: "none" }}
+          >
+            <option value="">Select Center</option>
+            <option value="Cupertino">Cupertino</option>
+            <option value="Milpitas">Milpitas</option>
+          </select>
 
-  <input
-    type="email"
-    placeholder="Email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    required
-    style={{
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      width: "100%",
-      boxSizing: "border-box",
-      display: "block",
-    }}
-  />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={inputStyle}
+          />
 
-  <input
-    type="password"
-    placeholder="Password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    required
-    style={{
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      width: "100%",
-      boxSizing: "border-box",
-      display: "block",
-    }}
-  />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={inputStyle}
+          />
 
-  <button
-    type="submit"
-    style={{
-      padding: "12px",
-      background: "#5cb85c",
-      color: "#fff",
-      fontWeight: "bold",
-      border: "none",
-      borderRadius: "8px",
-      cursor: "pointer",
-      marginTop: "10px",
-      fontSize: "16px",
-      width: "100%",
-    }}
-  >
-    Sign Up
-  </button>
-</form>
+          <button type="submit" style={buttonStyle}>
+            Sign Up
+          </button>
+        </form>
 
-
-        {/* 🔹 Navigation back to login */}
         <p style={{ marginTop: "15px" }}>
           Already have an account?{" "}
           <span
@@ -208,3 +150,26 @@ const handleSignup = async (e) => {
     </div>
   );
 }
+
+// ✅ Shared styles
+const inputStyle = {
+  padding: "12px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+  width: "100%",
+  boxSizing: "border-box",
+  display: "block",
+};
+
+const buttonStyle = {
+  padding: "12px",
+  background: "#5cb85c",
+  color: "#fff",
+  fontWeight: "bold",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  marginTop: "10px",
+  fontSize: "16px",
+  width: "100%",
+};

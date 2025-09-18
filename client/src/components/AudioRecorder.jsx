@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, uploadBytes } from "firebase/storage";
-import {
-  db,
-  storage
-} from "../firebaseConfig";
+import { db, storage } from "../firebaseConfig";
 import {
   collection,
   query,
@@ -14,21 +10,17 @@ import {
   doc,
   serverTimestamp,
 } from "firebase/firestore";
-import axios from "axios";
+import { getDownloadURL, ref as storageRef } from "firebase/storage";
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL || "https://bakannadakali.onrender.com";
-
-export default function AudioRecorder({ refText, storyId, week, user, onScoreSaved }) {
+export default function AudioRecorder({ storyId, week, user, onScoreSaved }) {
   const [recorder, setRecorder] = useState(null);
   const [blob, setBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState("");
-  const [transcript, setTranscript] = useState("");
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
-  const [startTime, setStartTime] = useState(null);
-  const [durationSec, setDurationSec] = useState(0);
 
+  // mediarecorder
   useEffect(() => {
     let mediaRecorder;
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
@@ -51,26 +43,133 @@ export default function AudioRecorder({ refText, storyId, week, user, onScoreSav
   }, []);
 
   const startRecording = () => {
-    setTranscript("");
     setMetrics(null);
     setErrMsg("");
-    if (recorder && recorder.state === "inactive") {
-      setStartTime(Date.now());
-      recorder.start();
-    }
+    if (recorder && recorder.state === "inactive") recorder.start();
   };
 
   const stopRecording = () => {
-    if (recorder && recorder.state === "recording") {
-      recorder.stop();
-      if (startTime) {
-        const elapsed = Math.round((Date.now() - startTime) / 1000);
-        setDurationSec(elapsed);
-      }
-    }
+    if (recorder && recorder.state === "recording") recorder.stop();
   };
 
-  const uploadAndScore = async () => {
+  //  Silence trimming 
+  function trimSilence(data, threshold = 0.01) {
+    let start = 0,
+      end = data.length - 1;
+    while (start < end && Math.abs(data[start]) < threshold) start++;
+    while (end > start && Math.abs(data[end]) < threshold) end--;
+    return data.slice(start, end + 1);
+  }
+
+  //  RMS energy check 
+  function rmsEnergy(data) {
+    return Math.sqrt(data.reduce((s, x) => s + x * x, 0) / data.length);
+  }
+
+  //  FFT helper 
+  function fftMag(signal) {
+    const N = signal.length;
+    const re = signal.slice();
+    const im = new Array(N).fill(0);
+
+    for (let k = 0; k < N; k++) {
+      let sumRe = 0,
+        sumIm = 0;
+      for (let n = 0; n < N; n++) {
+        const angle = (-2 * Math.PI * k * n) / N;
+        sumRe += signal[n] * Math.cos(angle);
+        sumIm += signal[n] * Math.sin(angle);
+      }
+      re[k] = sumRe;
+      im[k] = sumIm;
+    }
+    return re.map((r, i) => Math.sqrt(r * r + im[i] * im[i]));
+  }
+
+//  crude MFCC extractor with checks + explicit cleanup 
+async function extractMFCC(blob) {
+  const ctx = new AudioContext();
+  let buf = await blob.arrayBuffer();   // use let, not const
+  let audio = await ctx.decodeAudioData(buf);
+  let data = audio.getChannelData(0);
+
+  // reject too short recordings
+  if (audio.duration < 1.0) {
+    throw new Error("Recording too short. Please try again.");
+  }
+
+  // trim silence
+  data = trimSilence(data);
+
+  // reject silent recordings
+  const energy = rmsEnergy(data);
+  if (energy < 0.01) {
+    throw new Error("Recording contains no speech.");
+  }
+
+  const frameSize = 512, hop = 256;
+  const mfccs = [];
+  for (let i = 0; i + frameSize < data.length; i += hop) {
+    const frame = data.slice(i, i + frameSize);
+    const mags = fftMag(frame);
+
+    // take log energies of first 20 bins, then crude DCT
+    const logBins = mags.slice(0, 20).map((x) => Math.log(1 + x));
+    const coeffs = new Array(13).fill(0);
+    for (let k = 0; k < 13; k++) {
+      coeffs[k] = logBins.reduce(
+        (a, b, n) => a + b * Math.cos((Math.PI * k * n) / 20),
+        0
+      );
+    }
+    mfccs.push(coeffs);
+  }
+
+  // ✅ explicit cleanup
+  data = null;
+  buf = null;
+  audio = null;
+  ctx.close();
+
+  return mfccs;
+}
+
+
+
+  //  Euclidean distance 
+  function euclidean(a, b) {
+    let s = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+      const d = a[i] - b[i];
+      s += d * d;
+    }
+    return Math.sqrt(s);
+  }
+
+  //  DTW with normalized cost 
+  function dtwDistance(seq1, seq2) {
+    const n = seq1.length,
+      m = seq2.length;
+    const dp = Array.from({ length: n + 1 }, () =>
+      Array(m + 1).fill(Infinity)
+    );
+    dp[0][0] = 0;
+
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        const dist = euclidean(seq1[i - 1], seq2[j - 1]);
+        dp[i][j] =
+          dist + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+
+    const rawCost = dp[n][m];
+    const avgLen = (n + m) / 2;
+    return rawCost / avgLen;
+  }
+
+  //  compare & score 
+  const compareAndScore = async () => {
     if (!blob) {
       alert("Please record first.");
       return;
@@ -78,74 +177,79 @@ export default function AudioRecorder({ refText, storyId, week, user, onScoreSav
     setLoading(true);
     setErrMsg("");
     try {
-      const filename = `${user.uid}_week${week}_${Date.now()}.webm`;
-      await uploadBytes(ref(storage, filename), blob);
+      // 1. get reference audio from Firebase
+      const refPath = `references/${storyId || "default"}.webm`;
+      const refUrl = await getDownloadURL(storageRef(storage, refPath));
+      const refResp = await fetch(refUrl);
+      const refBlob = await refResp.blob();
 
-      const formData = new FormData();
-      formData.append("audio", blob, filename);
-      formData.append("durationSec", durationSec);
+      // 2. MFCCs (with checks)
+      const studentMFCC = await extractMFCC(blob);
+      if (studentMFCC.length < 5) {
+        throw new Error("Recording too short or invalid.");
+      }
+      const refMFCC = await extractMFCC(refBlob);
 
-      // 🔵 Call backend for STT
-      const tr = await axios.post(`${BACKEND}/api/transcribe`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // enforce relative length requirement
+      if (studentMFCC.length < 0.7 * refMFCC.length) {
+        throw new Error("Recording too short compared to reference.");
+      }
 
-      const transcription = tr.data?.transcription || "";
-      setTranscript(transcription);
+      // 3. DTW + stricter similarity
+      const normCost = dtwDistance(studentMFCC, refMFCC);
+      const alpha = 0.02; // stricter
+      const similarity = Math.exp(-alpha * normCost);
 
-      const payload = {
-        transcription,
-        ...(refText ? { refText } : {}),
-        ...(storyId ? { storyId } : {}),
-        ...(week ? { week } : {}),
-      };
+      // penalize by length ratio
+      const lenRatio =
+        Math.min(studentMFCC.length, refMFCC.length) /
+        Math.max(studentMFCC.length, refMFCC.length);
+      const adjustedSim = similarity * lenRatio;
 
-      // 🔵 Call backend for scoring
-      const sc = await axios.post(`${BACKEND}/api/metrics/score-all`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const threshold = 0.70;
+      const passed = adjustedSim >= threshold;
+      setMetrics({ combined: { value: adjustedSim, passed, threshold } });
 
-      setMetrics(sc.data || null);
+      // 4. Save only anonymized score data
+      if (user) {
+        const scoresRef = collection(db, "scores");
+        const q = query(
+          scoresRef,
+          where("uid", "==", user.uid),
+          where("week", "==", week || "NA")
+        );
+        const snap = await getDocs(q);
 
-// ✅ Save to Firestore
-if (sc.data && user) {
-  const scoresRef = collection(db, "scores");
-  const q = query(
-    scoresRef,
-    where("uid", "==", user.uid),
-    where("week", "==", week || "NA")
-  );
-  const snap = await getDocs(q);
+        if (!snap.empty) {
+          const existingDoc = snap.docs[0];
+          const existing = existingDoc.data();
+          await updateDoc(doc(db, "scores", existingDoc.id), {
+            attempts: (existing.attempts || 0) + 1,
+            score: Math.max(existing.score || 0, adjustedSim),
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          await addDoc(scoresRef, {
+            uid: user.uid,            // only UID stored
+            week: week || "NA",
+            score: adjustedSim,
+            passed,
+            attempts: 1,
+            createdAt: serverTimestamp(),
+          });
+        }
 
-  if (!snap.empty) {
-    const existingDoc = snap.docs[0];
-    const existing = existingDoc.data();
-    await updateDoc(doc(db, "scores", existingDoc.id), {
-      attempts: (existing.attempts || 0) + 1,
-      score: Math.max(existing.score || 0, sc.data.combined?.value || 0),
-      updatedAt: serverTimestamp(),
-      name: user.displayName || "",   // 🔹 store student name
-    });
-    console.log("updated attempt");
-  } else {
-    await addDoc(scoresRef, {
-      uid: user.uid,
-      name: user.displayName || "",   // 🔹 store student name
-      week: week || "NA",
-      score: sc.data.combined?.value || 0,
-      passed: sc.data.combined?.passed || false,
-      attempts: 1,
-      createdAt: serverTimestamp(),
-    });
-    console.log("created new attempt");
-  }
+        if (onScoreSaved) onScoreSaved();
+      }
 
-  if (onScoreSaved) onScoreSaved(); // notify Dashboard to refresh
-}
 
+      // cleanup
+      URL.revokeObjectURL(audioUrl);
+      setBlob(null); 
+      setAudioUrl("");
     } catch (e) {
       console.error(e);
-      setErrMsg(e?.response?.data?.error || "Upload or scoring failed.");
+      setErrMsg(e.message || "Scoring failed.");
     } finally {
       setLoading(false);
     }
@@ -166,62 +270,19 @@ if (sc.data && user) {
       }}
     >
       <h3>Record</h3>
-
-      <div
-  style={{
-    background: "#f9f9f9",
-    padding: "16px 20px",
-    borderRadius: 8,
-    border: "1px solid #eee",
-    marginBottom: 16,
-    fontSize: 14,
-    color: "#444",
-    lineHeight: 1.6,
-    textAlign: "left", // ✅ force left alignment
-  }}
->
-  <ul style={{ margin: 0, paddingLeft: "20px", listStyleType: "disc" }}>
-    <li><b>Click Record </b> to start recording.</li>
-    <li><b>Click Stop </b> to end recording. Your audio will appear below.</li>
-    <li><b>Click Upload & Score </b> to submit and see your score.</li>
-    <li>A <b>70% score</b> is required to pass.</li>
-    <li>Scores are uploaded <b>automatically</b> (reload page to show).</li>
-    <li>Re-record attempts are <b>counted</b>, but do not lower the score.</li>
-    <li>If there is a technical issue, email <b>kkalisite@gmail.com</b> for support.</li>
-
-  </ul>
-</div>
-
-
-
-      <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-        <button
-          type="button"
-          onClick={startRecording}
-          style={{ flex: 1, background: "#d9534f", color: "#fff", padding: "10px", border: "none", borderRadius: 8 }}
-        >
-          Record
-        </button>
-        <button
-          type="button"
-          onClick={stopRecording}
-          style={{ flex: 1, background: "#6c757d", color: "#fff", padding: "10px", border: "none", borderRadius: 8 }}
-        >
-          Stop
-        </button>
-        <button
-          type="button"
-          onClick={uploadAndScore}
-          disabled={loading}
-          style={{ flex: 1, background: "#5cb85c", color: "#fff", padding: "10px", border: "none", borderRadius: 8 }}
-        >
-          {loading ? "Scoring..." : "Upload & Score"}
+      <div style={{ marginBottom: 12 }}>
+        <button onClick={startRecording}>Record</button>
+        <button onClick={stopRecording}>Stop</button>
+        <button onClick={compareAndScore} disabled={loading}>
+          {loading ? "Scoring..." : "Compare & Score"}
         </button>
       </div>
-
-      {audioUrl && <audio style={{ marginTop: 15, width: "100%" }} controls src={audioUrl} />}
-      {errMsg && <div style={{ marginTop: 12, color: "#b00020" }}>{errMsg}</div>}
-
+      {audioUrl && (
+        <audio style={{ marginTop: 15, width: "100%" }} controls src={audioUrl} />
+      )}
+      {errMsg && (
+        <div style={{ marginTop: 12, color: "#b00020" }}>{errMsg}</div>
+      )}
       {metrics && (
         <div
           style={{
@@ -229,21 +290,15 @@ if (sc.data && user) {
             background: passed ? "#eaf7ea" : "#fdeaea",
             padding: 12,
             borderRadius: 8,
-            border: `1px solid ${passed ? "#5fa85f" : "#d66"}`,
           }}
         >
-          <h4 style={{ marginTop: 0 }}>Combined Score</h4>
+          <h4>Combined Score</h4>
           <div style={{ fontSize: 20, fontWeight: 700 }}>
             {combined?.toFixed(3)} {passed ? "✓ Pass" : "✗ Try again"}
           </div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Threshold: {threshold.toFixed(2)}</div>
-
-          {/* {!passed && transcript && (
-            <div style={{ marginTop: 16, background: "#fff3f3", padding: 10, borderRadius: 8 }}>
-              <h4>Transcription</h4>
-              <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>{transcript}</pre>
-            </div>
-          )} */}
+          <div style={{ fontSize: 12, opacity: 0.7 }}>
+            Threshold: {threshold.toFixed(2)}
+          </div>
         </div>
       )}
     </div>

@@ -5,7 +5,6 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 
-const transcribeRoute = require("./routes/transcribeRoute");
 const metricRoute = require("./routes/metricRoute");
 const storyRoute = require("./routes/storyRoute");
 
@@ -35,7 +34,6 @@ app.options("*", cors({
 
 app.use(express.json());
 
-app.use("/api/transcribe", transcribeRoute);
 app.use("/api/metrics", metricRoute);
 app.use("/api/story", storyRoute);
 

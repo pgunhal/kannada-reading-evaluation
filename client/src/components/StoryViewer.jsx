@@ -84,9 +84,16 @@ export default function StoryViewer({ user }) {
     setShowingCurrentWeek((v) => !v);
   };
 
+  // ✅ normalize storyId for storage filenames
+  const normalizeId = (id) =>
+    String(id || "default")
+      .toLowerCase()
+      .replace(/\s+/g, "_");
+
   const currentStoryId = showingCurrentWeek ? activeStory : prevStory;
   const currentWeek = showingCurrentWeek ? activeWeek : prevWeek;
   const refText = canonicalizeRef(rawStory);
+  const normalizedStoryId = normalizeId(currentStoryId);
 
   return (
     <div id="mainContent">
@@ -103,9 +110,9 @@ export default function StoryViewer({ user }) {
 
       <AudioRecorder
         refText={refText}
-        storyId={currentStoryId}
+        storyId={normalizedStoryId}  // ✅ always normalized
         week={currentWeek}
-        user={user}   // ✅ pass user down
+        user={user}
       />
     </div>
   );
