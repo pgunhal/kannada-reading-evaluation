@@ -269,10 +269,48 @@ async function extractMFCC(blob) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       }}
     >
-      <h3>Record</h3>
-      <div style={{ marginBottom: 12 }}>
-        <button onClick={startRecording}>Record</button>
-        <button onClick={stopRecording}>Stop</button>
+   <h3>Record</h3>
+
+      <div
+  style={{
+    background: "#f9f9f9",
+    padding: "16px 20px",
+    borderRadius: 8,
+    border: "1px solid #eee",
+    marginBottom: 16,
+    fontSize: 14,
+    color: "#444",
+    lineHeight: 1.6,
+    textAlign: "left", // ✅ force left alignment
+  }}
+>
+  <ul style={{ margin: 0, paddingLeft: "20px", listStyleType: "disc" }}>
+    <li><b>Click Record </b> to start recording.</li>
+    <li><b>Click Stop </b> to end recording. Your audio will appear below.</li>
+    <li><b>Click Compare & Score </b> to submit and see your score.</li>
+    <li>A <b>70% score</b> is required to pass.</li>
+    <li>Scores are uploaded <b>automatically</b> (reload page to show).</li>
+    <li>Re-record attempts are <b>counted</b>, but do not lower the score.</li>
+    <li>If there is a technical issue, email <b>kkalisite@gmail.com</b> for support.</li>
+
+  </ul>
+</div>      <div style={{ marginBottom: 12 }}>
+   <button
+          type="button"
+          onClick={startRecording}
+          style={{ flex: 1, background: "#d9534f", color: "#fff", padding: "10px", border: "none", borderRadius: 8 }}
+        >
+          Record
+        </button>
+        <button
+          type="button"
+          onClick={stopRecording}
+          style={{ flex: 1, background: "#6c757d", color: "#fff", padding: "10px", border: "none", borderRadius: 8 }}
+        >
+          Stop
+        </button>
+        {/* <button onClick={startRecording}>Record</button>
+        <button onClick={stopRecording}>Stop</button> */}
         <button onClick={compareAndScore} disabled={loading}>
           {loading ? "Scoring..." : "Compare & Score"}
         </button>
