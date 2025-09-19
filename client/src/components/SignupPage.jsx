@@ -19,10 +19,11 @@ export default function SignupPage() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    const confirm = window.confirm(
-      "By creating an account, you agree that you have signed the waiver and consent to recording and storage as defined in the waiver."
-    );
-    if (!confirm) return;
+  const confirm = window.confirm(
+    "I understand that my child’s voice is used only in the moment to calculate a score, that no recordings are stored or uploaded, and that only anonymized scores linked to an encrypted identifier are saved securely for teachers. I also understand that participation is optional and that scores can be deleted upon request."
+  );
+  if (!confirm) return;
+
 
     try {
       // 1. Create Auth account
