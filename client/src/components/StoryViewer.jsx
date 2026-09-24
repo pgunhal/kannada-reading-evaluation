@@ -3,7 +3,7 @@ import { db } from "../firebaseConfig";
 import { getDoc, doc } from "firebase/firestore";
 import AudioRecorder from "./AudioRecorder";
 
-export default function StoryViewer({ user }) {
+export default function StoryViewer({ user, onScoreSaved }) {
   const [activeStory, setActiveStory] = useState("");
   const [prevStory, setPrevStory] = useState("");
   const [activeWeek, setActiveWeek] = useState("");
@@ -113,6 +113,7 @@ export default function StoryViewer({ user }) {
         storyId={normalizedStoryId}  // ✅ always normalized
         week={currentWeek}
         user={user}
+        onScoreSaved={onScoreSaved}
       />
     </div>
   );

@@ -1,0 +1,43 @@
+import React from "react";
+import { act, render } from "@testing-library/react";
+import { httpsCallable } from "firebase/functions";
+import useActiveReading from "./useActiveReading";
+jest.mock("../../firebaseConfig", () => ({ functions: {} }));
+jest.mock("firebase/functions", () => ({ httpsCallable: jest.fn() }));
+function Screen() {
+  const timer = useActiveReading({ attemptId: "test", remainingSeconds: 20 }, true);
+  return <div>{timer.remaining} · {String(timer.active)}</div>;
+}
+test("hidden, unfocused and unmounted reading screens stop reporting time", async () => {
+  jest.useFakeTimers("modern");
+  let focused = true;
+  let visible = "visible";
+  const focus = jest.spyOn(document, "hasFocus").mockImplementation(() => focused);
+  const visibility = jest.spyOn(document, "visibilityState", "get").mockImplementation(() => visible);
+  const uuid = Object.getOwnPropertyDescriptor(global, "crypto");
+  Object.defineProperty(global, "crypto", { configurable: true, value: { randomUUID: () => `session-${Math.random()}` } });
+  const heartbeat = jest.fn().mockResolvedValue({ data: { remainingSeconds: 18 } });
+  httpsCallable.mockReturnValue(heartbeat);
+  let screen;
+  await act(async () => { screen = render(<Screen />); });
+  await act(async () => { jest.advanceTimersByTime(2000); });
+  expect(heartbeat.mock.calls.some(([payload]) => payload.activeMs > 0)).toBe(true);
+  await act(async () => { visible = "hidden"; document.dispatchEvent(new Event("visibilitychange")); });
+  const hiddenCount = heartbeat.mock.calls.length;
+  await act(async () => { jest.advanceTimersByTime(15000); });
+  expect(heartbeat).toHaveBeenCalledTimes(hiddenCount);
+  await act(async () => { visible = "visible"; document.dispatchEvent(new Event("visibilitychange")); });
+  expect(heartbeat.mock.calls.at(-1)[0].sequence).toBe(0);
+  await act(async () => { jest.advanceTimersByTime(2000); });
+  await act(async () => { focused = false; window.dispatchEvent(new Event("blur")); });
+  const blurredCount = heartbeat.mock.calls.length;
+  await act(async () => { jest.advanceTimersByTime(15000); });
+  expect(heartbeat).toHaveBeenCalledTimes(blurredCount);
+  await act(async () => { screen.unmount(); });
+  await act(async () => { jest.advanceTimersByTime(15000); });
+  expect(heartbeat).toHaveBeenCalledTimes(blurredCount);
+  focus.mockRestore(); visibility.mockRestore();
+  if (uuid) Object.defineProperty(global,"crypto",uuid);
+  else delete global.crypto;
+  jest.useRealTimers();
+});

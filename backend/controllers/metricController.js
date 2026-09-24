@@ -1,3 +1,5 @@
+// Deprecated runtime path:
+// this logic has been ported client-side for privacy-first on-device scoring.
 const levenshtein = require("fast-levenshtein");
 
 const normalizeKannada = (s) =>
@@ -270,6 +272,5 @@ exports.scoreAll = async (req, res) => {
     res.status(500).json({ error: "scoreAll failed" });
   }
 };
-
 
 

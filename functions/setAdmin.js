@@ -6,8 +6,12 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+/**
+ * Grant the legacy admin claim.
+ * @param {string} uid Firebase Auth user ID.
+ */
 async function makeAdmin(uid) {
-  await admin.auth().setCustomUserClaims(uid, { isAdmin: true });
+  await admin.auth().setCustomUserClaims(uid, {isAdmin: true});
   console.log(`✅ User ${uid} is now an admin`);
   process.exit();
 }

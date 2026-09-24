@@ -1,3 +1,9 @@
+"""Offline experiment only.
+
+This script uses cloud Google Speech-to-Text and is not part of the live
+privacy-first scoring pipeline.
+"""
+
 import os
 from google.cloud import speech
 

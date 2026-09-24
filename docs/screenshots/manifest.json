@@ -1,0 +1,410 @@
+[
+  {
+    "name": "01-student-login",
+    "title": "Student login",
+    "route": "/",
+    "images": {
+      "desktop": {
+        "path": "desktop/01-student-login.png",
+        "width": 1440,
+        "height": 1080
+      },
+      "mobile": {
+        "path": "mobile/01-student-login.png",
+        "width": 443,
+        "height": 930
+      }
+    }
+  },
+  {
+    "name": "02-student-dashboard",
+    "title": "Student dashboard",
+    "route": "/",
+    "images": {
+      "desktop": {
+        "path": "desktop/02-student-dashboard.png",
+        "width": 1440,
+        "height": 1240
+      },
+      "mobile": {
+        "path": "mobile/02-student-dashboard.png",
+        "width": 443,
+        "height": 2041
+      }
+    }
+  },
+  {
+    "name": "03-reading",
+    "title": "Story reading",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/03-reading.png",
+        "width": 1440,
+        "height": 1178
+      },
+      "mobile": {
+        "path": "mobile/03-reading.png",
+        "width": 443,
+        "height": 1706
+      }
+    }
+  },
+  {
+    "name": "04-quiz-multiple-choice",
+    "title": "Quiz — mcq",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/04-quiz-multiple-choice.png",
+        "width": 1440,
+        "height": 1128
+      },
+      "mobile": {
+        "path": "mobile/04-quiz-multiple-choice.png",
+        "width": 443,
+        "height": 1067
+      }
+    }
+  },
+  {
+    "name": "05-quiz-true-false",
+    "title": "Quiz — true_false",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/05-quiz-true-false.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/05-quiz-true-false.png",
+        "width": 443,
+        "height": 907
+      }
+    }
+  },
+  {
+    "name": "06-quiz-missing-word",
+    "title": "Quiz — cloze",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/06-quiz-missing-word.png",
+        "width": 1440,
+        "height": 1128
+      },
+      "mobile": {
+        "path": "mobile/06-quiz-missing-word.png",
+        "width": 443,
+        "height": 1067
+      }
+    }
+  },
+  {
+    "name": "07-result-retry",
+    "title": "Failed result — retry available",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/07-result-retry.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/07-result-retry.png",
+        "width": 443,
+        "height": 1029
+      }
+    }
+  },
+  {
+    "name": "08-reading-reattempt",
+    "title": "Reading — second attempt",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/08-reading-reattempt.png",
+        "width": 1440,
+        "height": 1178
+      },
+      "mobile": {
+        "path": "mobile/08-reading-reattempt.png",
+        "width": 443,
+        "height": 1706
+      }
+    }
+  },
+  {
+    "name": "09-result-limit",
+    "title": "Failed result — three attempts used",
+    "route": "/app/stories/demo-story",
+    "images": {
+      "desktop": {
+        "path": "desktop/09-result-limit.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/09-result-limit.png",
+        "width": 443,
+        "height": 973
+      }
+    }
+  },
+  {
+    "name": "10-result-passed",
+    "title": "Passed result",
+    "route": "/app/stories/demo-rain",
+    "images": {
+      "desktop": {
+        "path": "desktop/10-result-passed.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/10-result-passed.png",
+        "width": 443,
+        "height": 973
+      }
+    }
+  },
+  {
+    "name": "11-teacher-login",
+    "title": "Teacher login",
+    "route": "/admin/login",
+    "images": {
+      "desktop": {
+        "path": "desktop/11-teacher-login.png",
+        "width": 1440,
+        "height": 1040
+      },
+      "mobile": {
+        "path": "mobile/11-teacher-login.png",
+        "width": 443,
+        "height": 890
+      }
+    }
+  },
+  {
+    "name": "12-story-studio",
+    "title": "Story studio — story selection",
+    "route": "/admin/stories",
+    "images": {
+      "desktop": {
+        "path": "desktop/12-story-studio.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/12-story-studio.png",
+        "width": 443,
+        "height": 945
+      }
+    }
+  },
+  {
+    "name": "13-passage-editor",
+    "title": "Story studio — passage editor",
+    "route": "/admin/stories",
+    "images": {
+      "desktop": {
+        "path": "desktop/13-passage-editor.png",
+        "width": 1440,
+        "height": 1236
+      },
+      "mobile": {
+        "path": "mobile/13-passage-editor.png",
+        "width": 443,
+        "height": 1667
+      }
+    }
+  },
+  {
+    "name": "14-question-editor",
+    "title": "Story studio — full question bank",
+    "route": "/admin/stories",
+    "images": {
+      "desktop": {
+        "path": "desktop/14-question-editor.png",
+        "width": 1440,
+        "height": 7515
+      },
+      "mobile": {
+        "path": "mobile/14-question-editor.png",
+        "width": 443,
+        "height": 10982
+      }
+    }
+  },
+  {
+    "name": "15-story-progress",
+    "title": "Story studio — progress for one story",
+    "route": "/admin/stories",
+    "images": {
+      "desktop": {
+        "path": "desktop/15-story-progress.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/15-story-progress.png",
+        "width": 443,
+        "height": 1122
+      }
+    }
+  },
+  {
+    "name": "16-gradebook",
+    "title": "Class gradebook",
+    "route": "/admin/gradebook",
+    "images": {
+      "desktop": {
+        "path": "desktop/16-gradebook.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/16-gradebook.png",
+        "width": 443,
+        "height": 850
+      }
+    }
+  },
+  {
+    "name": "17-legacy-signup",
+    "title": "Legacy account registration",
+    "route": "/signup",
+    "images": {
+      "desktop": {
+        "path": "desktop/17-legacy-signup.png",
+        "width": 1440,
+        "height": 1040
+      },
+      "mobile": {
+        "path": "mobile/17-legacy-signup.png",
+        "width": 443,
+        "height": 890
+      }
+    }
+  },
+  {
+    "name": "18-student-history",
+    "title": "Student attempt history",
+    "route": "/admin/gradebook",
+    "images": {
+      "desktop": {
+        "path": "desktop/18-student-history.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/18-student-history.png",
+        "width": 443,
+        "height": 850
+      }
+    }
+  },
+  {
+    "name": "19-new-story-draft",
+    "title": "Story studio — new draft",
+    "route": "/admin/stories",
+    "images": {
+      "desktop": {
+        "path": "desktop/19-new-story-draft.png",
+        "width": 1440,
+        "height": 1236
+      },
+      "mobile": {
+        "path": "mobile/19-new-story-draft.png",
+        "width": 443,
+        "height": 1667
+      }
+    }
+  },
+  {
+    "name": "20-student-no-history",
+    "title": "Gradebook — student with no attempts",
+    "route": "/admin/gradebook",
+    "images": {
+      "desktop": {
+        "path": "desktop/20-student-no-history.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/20-student-no-history.png",
+        "width": 443,
+        "height": 850
+      }
+    }
+  },
+  {
+    "name": "21-dashboard-completed",
+    "title": "Dashboard — completed filter",
+    "route": "/app",
+    "images": {
+      "desktop": {
+        "path": "desktop/21-dashboard-completed.png",
+        "width": 1440,
+        "height": 1000
+      },
+      "mobile": {
+        "path": "mobile/21-dashboard-completed.png",
+        "width": 443,
+        "height": 850
+      }
+    }
+  },
+  {
+    "name": "22-dashboard-to-read",
+    "title": "Dashboard — to-read filter",
+    "route": "/app",
+    "images": {
+      "desktop": {
+        "path": "desktop/22-dashboard-to-read.png",
+        "width": 1440,
+        "height": 1240
+      },
+      "mobile": {
+        "path": "mobile/22-dashboard-to-read.png",
+        "width": 443,
+        "height": 1629
+      }
+    }
+  },
+  {
+    "name": "23-legacy-audio",
+    "title": "Legacy audio — student dashboard",
+    "route": "/",
+    "images": {
+      "desktop": {
+        "path": "desktop/23-legacy-audio.png",
+        "width": 1440,
+        "height": 1153
+      },
+      "mobile": {
+        "path": "mobile/23-legacy-audio.png",
+        "width": 443,
+        "height": 1316
+      }
+    }
+  },
+  {
+    "name": "24-legacy-admin",
+    "title": "Legacy audio — administrator dashboard",
+    "route": "/admin/dashboard",
+    "images": {
+      "desktop": {
+        "path": "desktop/24-legacy-admin.png",
+        "width": 1440,
+        "height": 1040
+      },
+      "mobile": {
+        "path": "mobile/24-legacy-admin.png",
+        "width": 443,
+        "height": 890
+      }
+    }
+  }
+]

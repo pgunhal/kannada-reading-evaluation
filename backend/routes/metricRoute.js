@@ -10,8 +10,9 @@ const {
   scoreAll,
 } = require("../controllers/metricController");
 
-// Each expects JSON with { transcription, ... } and optionally { confidence }.
-// They do not accept audio; audio goes to /api/transcribe.
+// Deprecated runtime path:
+// scoring now lives in the browser so transcripts/audio never leave the device.
+// These endpoints remain temporarily for reference during the client-side port.
 router.post("/nled", nled);
 router.post("/ldr", ldr);
 router.post("/asr-confidence", asrConfidence);

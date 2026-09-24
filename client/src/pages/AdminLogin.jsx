@@ -15,8 +15,10 @@ export default function AdminLogin() {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCred.user.getIdTokenResult();
 
-      if (token.claims.isAdmin) {
-        navigate("/admin/dashboard");
+      if (token.claims.isAdmin || token.claims.role === "admin") {
+        navigate("/admin/stories");
+      } else if (["volunteer", "coordinator"].includes(token.claims.role)) {
+        navigate("/admin/stories");
       } else {
         setError("You do not have admin access.");
         await auth.signOut();

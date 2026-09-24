@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { db, storage } from "../firebaseConfig";
 import {
   collection,
@@ -11,19 +11,35 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getDownloadURL, ref as storageRef } from "firebase/storage";
+import { terminateAsrWorker, transcribeInWorker } from "../lib/asrWorkerClient";
+import { combinedTextScore } from "../lib/textScoring";
 
-export default function AudioRecorder({ storyId, week, user, onScoreSaved }) {
+const LOCAL_ASR_WEIGHT = 0.7;
+const ACOUSTIC_WEIGHT = 0.3;
+const COMBINED_PASS_THRESHOLD = 0.68;
+
+export default function AudioRecorder({ storyId, week, user, onScoreSaved, refText }) {
   const [recorder, setRecorder] = useState(null);
   const [blob, setBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState("");
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
+  const audioStreamRef = useRef(null);
+  const audioUrlRef = useRef("");
+
+  useEffect(() => {
+    if (audioUrlRef.current && audioUrlRef.current !== audioUrl) {
+      URL.revokeObjectURL(audioUrlRef.current);
+    }
+    audioUrlRef.current = audioUrl;
+  }, [audioUrl]);
 
   // mediarecorder
   useEffect(() => {
     let mediaRecorder;
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      audioStreamRef.current = stream;
       mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
       let chunks = [];
       mediaRecorder.ondataavailable = (e) => {
@@ -39,6 +55,12 @@ export default function AudioRecorder({ storyId, week, user, onScoreSaved }) {
     });
     return () => {
       if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
+        audioStreamRef.current = null;
+      }
+      terminateAsrWorker();
     };
   }, []);
 
@@ -86,15 +108,59 @@ export default function AudioRecorder({ storyId, week, user, onScoreSaved }) {
     return re.map((r, i) => Math.sqrt(r * r + im[i] * im[i]));
   }
 
-//  crude MFCC extractor with checks + explicit cleanup 
+async function decodeAudioBlob(sourceBlob) {
+  const Context = window.AudioContext || window.webkitAudioContext;
+  const ctx = new Context();
+  try {
+    const arrayBuffer = await sourceBlob.arrayBuffer();
+    const decodedAudio = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    const channelData = decodedAudio.getChannelData(0);
+
+    return {
+      sampleRate: decodedAudio.sampleRate,
+      duration: decodedAudio.duration,
+      audioData: new Float32Array(channelData),
+    };
+  } finally {
+    await ctx.close();
+  }
+}
+
+async function resampleTo16k(float32Audio, sampleRate) {
+  if (sampleRate === 16000) return new Float32Array(float32Audio);
+
+  const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (!OfflineContext) {
+    const resampleRatio = sampleRate / 16000;
+    const targetLength = Math.max(1, Math.round(float32Audio.length / resampleRatio));
+    const output = new Float32Array(targetLength);
+    for (let index = 0; index < targetLength; index += 1) {
+      output[index] = float32Audio[Math.min(float32Audio.length - 1, Math.round(index * resampleRatio))];
+    }
+    return output;
+  }
+
+  const frameCount = Math.ceil((float32Audio.length * 16000) / sampleRate);
+  const offlineContext = new OfflineContext(1, frameCount, 16000);
+  const buffer = offlineContext.createBuffer(1, float32Audio.length, sampleRate);
+  buffer.copyToChannel(float32Audio, 0);
+
+  const source = offlineContext.createBufferSource();
+  source.buffer = buffer;
+  source.connect(offlineContext.destination);
+  source.start(0);
+
+  const renderedBuffer = await offlineContext.startRendering();
+  return new Float32Array(renderedBuffer.getChannelData(0));
+}
+
+//  crude MFCC extractor with checks + explicit cleanup
 async function extractMFCC(blob) {
-  const ctx = new AudioContext();
-  let buf = await blob.arrayBuffer();   // use let, not const
-  let audio = await ctx.decodeAudioData(buf);
-  let data = audio.getChannelData(0);
+  const { duration, audioData } = await decodeAudioBlob(blob);
+  let data = audioData;
 
   // reject too short recordings
-  if (audio.duration < 1.0) {
+  if (duration < 1.0) {
     throw new Error("Recording too short. Please try again.");
   }
 
@@ -127,9 +193,6 @@ async function extractMFCC(blob) {
 
   // ✅ explicit cleanup
   data = null;
-  buf = null;
-  audio = null;
-  ctx.close();
 
   return mfccs;
 }
@@ -176,12 +239,18 @@ async function extractMFCC(blob) {
     }
     setLoading(true);
     setErrMsg("");
+    let studentPcm = null;
+    let transcriptText = "";
+    let previewUrl = audioUrl;
     try {
       // 1. get reference audio from Firebase
       const refPath = `references/${storyId || "default"}.webm`;
       const refUrl = await getDownloadURL(storageRef(storage, refPath));
       const refResp = await fetch(refUrl);
       const refBlob = await refResp.blob();
+
+      const decodedStudent = await decodeAudioBlob(blob);
+      studentPcm = await resampleTo16k(decodedStudent.audioData, decodedStudent.sampleRate);
 
       // 2. MFCCs (with checks)
       const studentMFCC = await extractMFCC(blob);
@@ -204,11 +273,39 @@ async function extractMFCC(blob) {
       const lenRatio =
         Math.min(studentMFCC.length, refMFCC.length) /
         Math.max(studentMFCC.length, refMFCC.length);
-      const adjustedSim = similarity * lenRatio;
+      const acousticScore = similarity * lenRatio;
 
-      const threshold = 0.70;
-      const passed = adjustedSim >= threshold;
-      setMetrics({ combined: { value: adjustedSim, passed, threshold } });
+      let textScore = null;
+      let transcriptMode = "acoustic_only";
+
+      try {
+        const workerInput = new Float32Array(studentPcm);
+        const transcription = await transcribeInWorker(workerInput);
+        transcriptText = transcription?.text || "";
+        if (transcriptText && refText) {
+          textScore = combinedTextScore({
+            hypothesis: transcriptText,
+            reference: refText,
+            avgLogProb: transcription?.avgLogProb,
+          });
+          transcriptMode = "local_asr";
+        }
+      } catch (error) {
+        textScore = null;
+      }
+
+      const combinedScore = textScore
+        ? (textScore.value * LOCAL_ASR_WEIGHT) + (acousticScore * ACOUSTIC_WEIGHT)
+        : acousticScore;
+      const threshold = textScore ? COMBINED_PASS_THRESHOLD : 0.7;
+      const passed = combinedScore >= threshold;
+
+      setMetrics({
+        combined: { value: combinedScore, passed, threshold },
+        acoustic: { value: acousticScore },
+        text: textScore,
+        mode: transcriptMode,
+      });
 
       // 4. Save only anonymized score data
       if (user) {
@@ -225,14 +322,14 @@ async function extractMFCC(blob) {
           const existing = existingDoc.data();
           await updateDoc(doc(db, "scores", existingDoc.id), {
             attempts: (existing.attempts || 0) + 1,
-            score: Math.max(existing.score || 0, adjustedSim),
+            score: Math.max(existing.score || 0, combinedScore),
             updatedAt: serverTimestamp(),
           });
         } else {
           await addDoc(scoresRef, {
             uid: user.uid,            // only UID stored
             week: week || "NA",
-            score: adjustedSim,
+            score: combinedScore,
             passed,
             attempts: 1,
             createdAt: serverTimestamp(),
@@ -244,13 +341,16 @@ async function extractMFCC(blob) {
 
 
       // cleanup
-      URL.revokeObjectURL(audioUrl);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setBlob(null); 
       setAudioUrl("");
     } catch (e) {
-      console.error(e);
       setErrMsg(e.message || "Scoring failed.");
     } finally {
+      if (studentPcm && studentPcm.buffer.byteLength > 0) studentPcm.fill(0);
+      studentPcm = null;
+      transcriptText = "";
+      previewUrl = "";
       setLoading(false);
     }
   };
@@ -287,9 +387,9 @@ async function extractMFCC(blob) {
   <ul style={{ margin: 0, paddingLeft: "20px", listStyleType: "disc" }}>
     <li><b>Click Record </b> to start recording.</li>
     <li><b>Click Stop </b> to end recording. Your audio will appear below.</li>
-    <li><b>Click Compare & Score </b> to submit and see your score.</li>
+    <li><b>Click Compare & Score </b> to process speech on this device and see your score.</li>
     <li>A <b>70% score</b> is required to pass.</li>
-    <li>Scores are uploaded <b>automatically</b> (reload page to show).</li>
+    <li>Only your score is saved. The recording stays on this device and is deleted after scoring.</li>
     <li>Re-record attempts are <b>counted</b>, but do not lower the score.</li>
     <li>If there is a technical issue, email <b>kkalisite@gmail.com</b> for support.</li>
 
@@ -337,6 +437,16 @@ async function extractMFCC(blob) {
           <div style={{ fontSize: 12, opacity: 0.7 }}>
             Threshold: {threshold.toFixed(2)}
           </div>
+          {metrics.text && (
+            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 8 }}>
+              Text score {metrics.text.value.toFixed(3)} + acoustic score {metrics.acoustic.value.toFixed(3)}
+            </div>
+          )}
+          {!metrics.text && (
+            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 8 }}>
+              Device ASR unavailable, using acoustic-only fallback for this attempt.
+            </div>
+          )}
         </div>
       )}
     </div>

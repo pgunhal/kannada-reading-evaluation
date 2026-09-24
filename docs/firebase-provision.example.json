@@ -1,0 +1,6 @@
+{
+  "centers": [{"id": "main-center", "name": "Main center"}],
+  "classes": [{"id": "grade-3", "name": "Grade 3", "centerId": "main-center", "teacherUids": ["REPLACE_TEACHER_AUTH_UID"]}],
+  "staff": [{"uid": "REPLACE_TEACHER_AUTH_UID", "displayName": "Teacher", "role": "volunteer", "centerIds": ["main-center"]}],
+  "students": [{"id": "student-001", "uid": "REPLACE_STUDENT_AUTH_UID", "displayName": "Student", "classId": "grade-3", "centerId": "main-center"}]
+}

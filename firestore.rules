@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? request.auth.token.get('role', '') : ''; }
+    function admin() { return role() == 'admin' || (signedIn() && request.auth.token.get('isAdmin', false)); }
+    function staff() { return role() in ['admin', 'coordinator', 'volunteer']; }
+    function centerStaff(centerId) {
+      return role() == 'admin' || (staff() && centerId in request.auth.token.get('centerIds', []));
+    }
+    function storyStaff(story) {
+      return role() == 'admin' || (staff() && story.centerIds.size() > 0 &&
+        request.auth.token.get('centerIds', []).hasAll(story.centerIds));
+    }
+    function currentStaff() {
+      return get(/databases/$(database)/documents/staffUsers/$(request.auth.uid)).data;
+    }
+    function classStaff(record) {
+      return signedIn() && (
+        currentStaff().role == 'admin' ||
+        (currentStaff().role in ['coordinator', 'volunteer'] &&
+          record.centerId in currentStaff().centerIds &&
+          (currentStaff().role == 'coordinator' ||
+            request.auth.uid in get(/databases/$(database)/documents/classes/$(record.classId)).data.teacherUids))
+      );
+    }
+    function storyStudent(story) {
+      return role() == 'student' && story.status == 'published' &&
+        request.auth.token.centerId in story.centerIds &&
+        (story.classIds.size() == 0 || request.auth.token.classId in story.classIds);
+    }
+    match /questions/{questionId} {
+      allow read: if storyStaff(get(/databases/$(database)/documents/stories/$(resource.data.storyId)).data);
+      allow write: if false; // Validated authoring through Cloud Functions.
+
+    }
+    match /attempts/{attemptId} {
+      allow read: if (role() == 'student' &&
+          resource.data.studentId == request.auth.token.studentId &&
+          resource.data.authUid == request.auth.uid) || classStaff(resource.data);
+      // Scores, answers, timestamps, review and telemetry all go through callables.
+      allow write: if false;
+    }
+    match /attemptKeys/{attemptId} { allow read, write: if false; }
+    match /students/{studentId} {
+      // Contains PIN hashes: never expose the entire document to students.
+      allow read: if classStaff(resource.data);
+      allow write: if false;
+    }
+    match /staffUsers/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || role() == 'admin');
+      allow write: if false;
+    }
+    match /stories/{storyId} {
+      allow read: if admin() || storyStaff(resource.data) || storyStudent(resource.data) ||
+        (signedIn() && !('status' in resource.data)); // Existing audio passages.
+      allow write: if false; // Validated authoring through Cloud Functions.
+
+    }
+    match /storyVersions/{storyId}/versions/{version} {
+      allow read: if storyStaff(get(/databases/$(database)/documents/stories/$(storyId)).data);
+      allow write: if false;
+    }
+    match /centers/{centerId} { allow read: if true; allow write: if role() == 'admin'; }
+    match /classes/{classId} {
+      allow read: if centerStaff(resource.data.centerId) ||
+        (role() == 'student' && request.auth.token.classId == classId);
+      allow write: if false;
+    }
+    // Compatibility for the existing, separate audio-reading app.
+    match /adminSettings/{setting} { allow read: if signedIn(); allow write: if admin(); }
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || admin());
+      allow create, update: if signedIn() && request.auth.uid == uid &&
+        request.resource.data.keys().hasOnly(['name', 'parentName', 'center', 'email']);
+    }
+    match /scores/{scoreId} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || admin());
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid &&
+        request.resource.data.uid == resource.data.uid;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,8 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import { combinedTextScore } from "./lib/textScoring";
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test("text scoring produces a bounded score", () => {
+  const score = combinedTextScore({
+    hypothesis: "ನಾನು ಶಾಲೆಗೆ ಹೋಗುತ್ತೇನೆ",
+    reference: "ನಾನು ಶಾಲೆಗೆ ಹೋಗುತ್ತೇನೆ",
+    avgLogProb: -0.3,
+  });
+
+  expect(score.value).toBeGreaterThan(0);
+  expect(score.value).toBeLessThanOrEqual(1);
 });

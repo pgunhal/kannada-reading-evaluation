@@ -13,7 +13,7 @@ export default function Login({ onLogin }) {
     e.preventDefault();
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      onLogin(userCred.user);
+      onLogin?.(userCred.user);
     } catch (err) {
       setError(err.message);
     }

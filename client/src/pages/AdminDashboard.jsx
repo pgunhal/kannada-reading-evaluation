@@ -23,7 +23,7 @@ export default function AdminDashboard() {
         return;
       }
       const token = await user.getIdTokenResult(true);
-      if (!token.claims.isAdmin) {
+      if (!token.claims.isAdmin && token.claims.role !== "admin") {
         alert("Access denied: Admins only");
         navigate("/");
       } else {
@@ -124,6 +124,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Manage story */}
+      <p><a href="/admin/reviews">Review pending cloze answers</a></p>
       <div
         style={{
           background: "#fff",

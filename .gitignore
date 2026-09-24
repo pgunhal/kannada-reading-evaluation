@@ -5,3 +5,12 @@ backend/creds.json
 admin-scripts/*
 client/.env
 backend/.env
+# Local Firebase provisioning, exports, and credentials
+.emulator-data/
+firebase-provision.local.json
+functions/serviceAccountKey.json
+*-service-account.json
+
+.deployment-backups/
+
+mock-students.local.json
