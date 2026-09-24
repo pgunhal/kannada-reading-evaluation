@@ -13,7 +13,7 @@ English is used for navigation, buttons, field labels and instructions. Story ti
 
 Four demo stories each have twelve authored questions. This is real emulator-backed functionality, not an array of browser-only mock screens: publication, saved edits, reading progress, assignments and grades go through Firebase. The demo roster has four students; only Demo student has a provisioned login. Ananya, Kiran and Meera illustrate missing work.
 
-The earlier audio-reading code remains in the repository, but its application routes have been removed. It has a different scoring path and collections. Its browser-calculated audio scores do not become quiz grades.
+The earlier audio-reading code is preserved in `archive/legacy-source.zip`, outside the active source tree; its application routes have been removed. It has a different scoring path and collections. Its browser-calculated audio scores do not become quiz grades.
 
 ## 2. Runtime architecture and source map
 
@@ -172,7 +172,7 @@ All quiz callables require an object payload. IDs are checked for a nonempty str
 | `getGradebook` | `{}` | Authorized classes, published story columns, roster rows, best results, missing counts and histories |
 | `getAttemptReview` | `{attemptId}` | Legacy staff-only private review detail |
 | `reviewAttempt` | `{attemptId,note,decisions:[{questionId,correct}]}` | Legacy pending-cloze review and grade recomputation |
-| `setWeekStory` | `{week,storyName}` | Legacy admin-only current/previous audio story settings |
+| `setWeekStory` (retained cloud resource only) | `{week,storyName}` | Historical settings; no longer exported by current source |
 
 ### Typical request sequence
 
@@ -361,7 +361,7 @@ Common symptoms:
 | Symptom | Explanation / check |
 |---|---|
 | `auth/user-not-found` | Fresh Auth emulator has not been seeded, or browser is connected to a different Firebase project |
-| Old audio app after login | Account lacks CMS `role` claims; use provisioned demo credentials and refresh token/session |
+| Old audio app after login | Check the URL and refresh cached assets; current routes never render the historical recording dashboard |
 | Old UI on :3000 | Confirm the process serving that port is this repository's client and was started with the emulator environment flag |
 | Timer paused | The reading screen/window must be focused and visible; activity on another application does not count |
 | Timer save error | Check Functions/Auth/Firestore are running and connected; return/reopen to establish a new reading session |
@@ -380,7 +380,7 @@ Current operational limits include one private Firestore document holding a bank
 
 ## 15. Verification and screenshot provenance
 
-The latest checks passed 12 backend/core/provisioning tests, 10 frontend tests, Functions lint, and the frontend build. Build output still includes existing legacy dependency/effect warnings. Commands:
+Run the current checks below. Archived speech-scoring tests are no longer part of the active frontend suite. Commands:
 
 ```sh
 npm --prefix functions run lint
@@ -396,7 +396,9 @@ Browser checks have covered choice-card interaction, keyboard radios, mobile ove
 Screenshots in the linked gallery are full-page PNG captures from the running local app, not mockups. Desktop viewport: 1440×1000; mobile: 443×850. Full-page height expands to include all content, including the entire twelve-question editor. Quiz/result screenshots use a temporary emulator student, real server assignments and submissions, and normal reading gates. The capture script reads private keys with the local Admin SDK solely to choose deterministic failed/passed screenshot outcomes; the student browser still receives only safe questions. Temporary screenshot attempts and the account are removed afterward. Dashboard, teacher progress and Gradebook captures show the preserved demo account/roster.
 
 
-## 16. Legacy audio workflow
+## 16. Historical workflow (archived, not active)
+
+All paths in this section refer to files inside `archive/legacy-source.zip`.
 
 The legacy `Dashboard.jsx` reads the signed-in user's `scores` and renders `StoryViewer`. That viewer reads both `adminSettings/story` and `adminSettings/prev_story`, then the selected story's `content` field. New CMS passages use `body`, so the two schemas are not interchangeable. If legacy settings are absent, the preserved legacy screen shows “Story not found”; the new CMS is unaffected.
 

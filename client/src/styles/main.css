@@ -61,25 +61,11 @@ button {
     font-size: 16px;
 }
 
-button#record {
-    background-color: #f44336;
-}
-
-button#upload {
-    background-color: #2196F3;
-}
-
 button:disabled,
 button[disabled]{
   background-color: #cccccc;
   color: #666666;
   cursor: not-allowed;
-}
-
-audio {
-    display: block;
-    width: 100%;
-    margin-top: 20px;
 }
 
 /* Responsive design adjustments */
@@ -118,14 +104,6 @@ audio {
 .radio-option input[type="radio"] {
     margin-right: 5px; 
 }
-
-#recordForm {
-    background-color: #f9f9f9; 
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
 
 @keyframes fadeIn {
     from {

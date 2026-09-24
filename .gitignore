@@ -33,3 +33,8 @@ backend/uploads/
 .firebase/
 train/*.csv
 train/run*/
+
+.legacy-local/
+
+mock-teacher.local.json
+testing-access.local.md

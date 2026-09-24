@@ -1,0 +1,49 @@
+flowchart TB
+  subgraph Browser[React application on Firebase Hosting]
+    Login[Login]
+    Student[Student dashboard]
+    Reader[Story reader and active-page timer]
+    Quiz[Four-question quiz and results]
+    Studio[Teacher story and question editor]
+    Gradebook[Class gradebook and student history]
+  end
+  Auth[Firebase Authentication: identity and role claims]
+  subgraph Functions[Cloud Functions: authenticate and authorize every request]
+    Reading[listStudentStories / startReading / readingHeartbeat]
+    Assignment[assignQuiz: four assigned questions only]
+    Grading[submitAttempt: server grading and retry limit]
+    CMS[listCmsStories / createCmsStory / saveCmsStory]
+    Grades[getGradebook]
+    Core[quizCore: selection and grading]
+  end
+  subgraph DB[Cloud Firestore]
+    Membership[centers / classes / students / staffUsers]
+    Stories[stories]
+    Keys[questions / attemptKeys: restricted answer data]
+    Progress[assessmentProgress / attempts]
+  end
+  Login --> Auth
+  Auth --> Student
+  Auth --> Studio
+  Student --> Reader --> Quiz
+  Studio --> Gradebook
+  Student --> Reading
+  Reader --> Reading
+  Quiz --> Assignment
+  Quiz --> Grading
+  Studio --> CMS
+  Gradebook --> Grades
+  Reading --> Membership
+  Reading --> Stories
+  Reading --> Progress
+  Assignment --> Core
+  Assignment --> Keys
+  Assignment --> Progress
+  Grading --> Core
+  Grading --> Keys
+  Grading --> Progress
+  CMS --> Membership
+  CMS --> Stories
+  CMS --> Keys
+  Grades --> Membership
+  Grades --> Progress

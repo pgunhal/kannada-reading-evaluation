@@ -1,3 +1,0 @@
- source .venv/bin/activate
-
- gen-lang-client-0847055216-ade1a70babe6.json

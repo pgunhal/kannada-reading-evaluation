@@ -4,6 +4,8 @@ Kannada story reading and choice-based quizzes for students, with teacher author
 
 - Student app: https://kkalisite-4fc4e.web.app/app
 - Teacher login: https://kkalisite-4fc4e.web.app/admin/login
+- [Step-by-step testing guide](docs/testing.md)
+- [Current architecture diagram](docs/architecture.md)
 - [Implementation guide](docs/implementation.md)
 - [Deployment instructions](docs/firebase-live-setup.md)
 - [Privacy/security/UX audit brief](docs/audit-brief.md)
@@ -62,4 +64,4 @@ The script targets `kkalisite-4fc4e`. It deploys named application functions, Fi
 
 ## Repository scope
 
-`client/src/components/assessment`, `functions/quiz.js`, `functions/quizCore.js`, `functions/gradebook.js`, and `firestore.rules` implement the current app. Legacy audio sources remain for reference, but recording screens are no longer routed. Dependencies, local environments, recordings, private credentials, logs, and generated training data should remain outside Git.
+`client/src/components/assessment`, `functions/quiz.js`, `functions/quizCore.js`, `functions/gradebook.js`, and `firestore.rules` implement the current app. Historical recording code is preserved in `archive/legacy-source.zip`, excluded from the active source tree, build, and deployment. Architecture tools should diagram only the current app, excluding the archive and historical screenshots. Dependencies, local environments, recordings, private credentials, logs, and generated training data should remain outside Git.
