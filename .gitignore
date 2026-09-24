@@ -38,3 +38,9 @@ train/run*/
 
 mock-teacher.local.json
 testing-access.local.md
+
+# Environment secrets; keep only sanitized templates in source control
+.env
+.env.*
+!.env.example
+!.env.*.example
