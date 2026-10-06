@@ -4,7 +4,7 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2022,
   },
   extends: [
     "eslint:recommended",
@@ -16,6 +16,14 @@ module.exports = {
     "quotes": ["error", "double", {"allowTemplateLiterals": true}],
   },
   overrides: [
+    {files: [
+      "speaking/**/*.js", "test/speaking*.js", "scripts/seedSpeaking.js",
+    ],
+    globals: {fetch: "readonly", AbortSignal: "readonly"},
+    rules: {
+      "max-len": "off", "require-jsdoc": "off", "valid-jsdoc": "off",
+      "object-curly-spacing": "off", "indent": "off",
+    }},
     {
       files: ["**/*.spec.*"],
       env: {

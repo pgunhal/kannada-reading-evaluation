@@ -2,6 +2,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+if [[ "$(git branch --show-current)" == "feature/speaking-portal" ]]; then
+  echo "This branch is preview-only. Run ./scripts/deploy-speaking-preview.sh instead." >&2
+  exit 1
+fi
+
 export REACT_APP_USE_FIREBASE_EMULATORS=false
 export GCLOUD_PROJECT=kkalisite-4fc4e
 unset FIRESTORE_EMULATOR_HOST FIREBASE_AUTH_EMULATOR_HOST DEBUG

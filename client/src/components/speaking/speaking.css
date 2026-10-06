@@ -1,0 +1,407 @@
+body:has(.speaking-app) {
+  margin: 0;
+  padding: 0;
+  background: #fffdfa;
+  display: block;
+  text-align: left;
+  color: #2f2723;
+  font-family: Inter, system-ui, sans-serif;
+}
+body:has(.speaking-app) #root {
+  width: 100%;
+  max-width: none;
+}
+.speaking-app {
+  --red: #a10303d5;
+  --yellow: #f3e40eb8;
+  min-height: 100vh;
+  background: #fffdfa;
+}
+.speaking-app * {
+  box-sizing: border-box;
+}
+.speaking-app header {
+  border-top: 7px solid var(--yellow);
+  border-bottom: 1px solid #ddd2c5;
+  background: #fff;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 12px max(20px, calc((100vw - 1180px) / 2));
+}
+.speaking-app header > a:last-child,
+.speaking-app header > button:last-child {
+  margin-left: auto;
+}
+.speaking-app a {
+  color: #8b1515;
+}
+.speaking-app .sp-brand {
+  font-family: "Noto Sans Kannada", sans-serif;
+  font-size: 22px;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.speaking-app nav {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+}
+.speaking-app nav a {
+  color: #44332b;
+  text-decoration: none;
+  padding: 9px 0;
+  border-bottom: 3px solid transparent;
+}
+.speaking-app nav a.active {
+  border-color: var(--red);
+  font-weight: 650;
+}
+.speaking-app main {
+  max-width: 1180px;
+  margin: auto;
+  padding: 26px 20px 60px;
+}
+.speaking-app h1,
+.speaking-app h2,
+.speaking-app h3 {
+  text-align: left;
+  color: #2f2723;
+  letter-spacing: 0;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+.speaking-app h1 {
+  font-size: 26px;
+}
+.speaking-app h2 {
+  font-size: 21px;
+}
+.speaking-app h3 {
+  font-size: 17px;
+  margin-top: 20px;
+}
+.speaking-app p {
+  line-height: 1.6;
+}
+.speaking-app form {
+  margin: 0;
+  text-align: left;
+}
+.speaking-app label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 15px;
+  min-width: 0;
+}
+.speaking-app input:not([type="checkbox"]),
+.speaking-app select,
+.speaking-app textarea {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 1px solid #a79b91;
+  border-radius: 5px;
+  background: #fff;
+  color: #2f2723;
+  padding: 10px 11px;
+  font: inherit;
+  font-weight: 400;
+  min-height: 42px;
+}
+.speaking-app textarea {
+  resize: vertical;
+  line-height: 1.9;
+}
+.speaking-app button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: var(--red);
+  color: white;
+  padding: 10px 15px;
+  margin: 0;
+  min-height: 40px;
+  width: auto;
+  box-shadow: none;
+  transition: none;
+}
+.speaking-app button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.speaking-app .sp-secondary {
+  background: #fff;
+  color: #552626;
+  border-color: #c8b5a5;
+}
+.speaking-app :focus-visible {
+  outline: 3px solid #9a6800;
+  outline-offset: 3px;
+}
+.speaking-app .sp-link {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #8b1515;
+  text-decoration: underline;
+  text-align: left;
+}
+.sp-page-title,
+.sp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.sp-page-title h1,
+.sp-row h2 {
+  margin: 0;
+}
+.sp-page-title label {
+  margin: 0;
+  min-width: 190px;
+}
+.sp-login {
+  max-width: 390px;
+  margin: 45px auto;
+  border-top: 5px solid var(--red);
+  padding: 24px;
+  background: white;
+  box-shadow: 0 0 0 1px #e0d4c6;
+  border-radius: 6px;
+}
+.sp-login form > button {
+  width: 100%;
+}
+.sp-login form > a {
+  display: block;
+  margin-top: 16px;
+}
+.sp-panel,
+.sp-reader {
+  border: 1px solid #dfd3c6;
+  border-radius: 6px;
+  padding: 22px;
+  background: white;
+  margin-bottom: 20px;
+}
+.sp-reader {
+  max-width: 850px;
+  margin: 0 auto;
+  border-top: 6px solid var(--yellow);
+}
+.sp-reader article h2 {
+  margin-top: 22px;
+}
+.speaking-app .sp-kannada {
+  font-family: "Noto Sans Kannada", sans-serif;
+  font-size: 21px;
+  line-height: 2.15;
+  overflow-wrap: anywhere;
+}
+.sp-reading-instruction {
+  font-size: 14px;
+  color: #584b43;
+  border-top: 1px solid #e6ddd5;
+  padding-top: 16px;
+}
+.sp-error {
+  background: #fff1ef;
+  border-left: 4px solid #a52a20;
+  padding: 12px;
+  color: #80231b;
+}
+.sp-success {
+  color: #245d2d;
+}
+.sp-toolbar,
+.sp-actions,
+.sp-inline {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.sp-toolbar label {
+  margin: 0;
+  flex: 1;
+}
+.sp-actions {
+  margin-top: 16px;
+}
+.sp-inline label {
+  margin: 0;
+}
+.sp-inline {
+  margin-top: 12px;
+}
+.sp-form-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 16px;
+}
+.sp-create summary,
+.sp-reader summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.sp-create[open] summary {
+  margin-bottom: 18px;
+}
+.sp-editor {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.sp-editor aside {
+  display: grid;
+  gap: 5px;
+}
+.sp-editor aside button {
+  text-align: left;
+  line-height: 1.7;
+}
+.sp-fields fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.sp-questions {
+  font-family: "Noto Sans Kannada", sans-serif;
+  line-height: 2.1;
+  padding-left: 24px;
+}
+.sp-questions li {
+  margin-bottom: 10px;
+}
+.sp-table-wrap {
+  overflow-x: auto;
+  margin: 12px 0 20px;
+}
+.speaking-app table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.speaking-app th,
+.speaking-app td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e6ddd4;
+  vertical-align: top;
+}
+.speaking-app th {
+  background: #fff8db;
+  font-weight: 650;
+}
+.speaking-app td select {
+  min-width: 200px;
+}
+.sp-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.sp-badge.draft {
+  background: var(--yellow);
+  color: #473a00;
+}
+.sp-badge.published {
+  background: #e0efdf;
+  color: #245b29;
+}
+.sp-publish {
+  padding: 18px;
+  background: #fffae7;
+  border: 1px solid #dfd0a5;
+  border-radius: 5px;
+}
+.speaking-app .sp-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
+}
+.sp-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #a10303;
+}
+.sp-history {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.sp-student-grade {
+  padding: 20px 0;
+  border-top: 3px solid var(--yellow);
+}
+@media (max-width: 720px) {
+  .speaking-app header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .speaking-app nav {
+    order: 3;
+    width: 100%;
+    flex: auto;
+    gap: 20px;
+    font-size: 14px;
+  }
+  .speaking-app main {
+    padding: 20px 14px 45px;
+  }
+  .sp-panel,
+  .sp-reader {
+    padding: 16px;
+  }
+  .sp-page-title {
+    align-items: start;
+    flex-wrap: wrap;
+  }
+  .sp-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .sp-editor {
+    grid-template-columns: 1fr;
+  }
+  .sp-editor aside {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 230px;
+    overflow-y: auto;
+  }
+  .speaking-app .sp-kannada {
+    font-size: 19px;
+  }
+  .sp-login {
+    margin: 24px auto;
+  }
+  .sp-page-title label {
+    width: 100%;
+  }
+  .sp-row {
+    align-items: start;
+  }
+}

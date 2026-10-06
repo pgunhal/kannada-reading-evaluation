@@ -44,3 +44,5 @@ testing-access.local.md
 .env.*
 !.env.example
 !.env.*.example
+
+speaking-test-accounts.local.json

@@ -1,3 +1,9 @@
+# Speaking portal preview
+
+This branch implements the new weekly reading and in-class speaking workflow. [Open student preview](https://kkalisite-4fc4e--speaking-portal-tk4jjjxg.web.app/app) · [Teacher preview](https://kkalisite-4fc4e--speaking-portal-tk4jjjxg.web.app/admin/login). See [setup, test accounts, implementation, and testing](docs/speaking-portal.md). The existing live quiz app remains unchanged. Use `scripts/deploy-speaking-preview.sh` for this branch.
+
+---
+
 # Kannada Kali
 
 Kannada story reading and choice-based quizzes for students, with teacher authoring and a class gradebook. React frontend, Firebase Auth, Firestore, and Cloud Functions. Question assignment and grading run on the server.
