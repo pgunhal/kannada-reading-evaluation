@@ -13,3 +13,4 @@ Full-page captures from the deployed preview, using synthetic accounts.
 - [Teacher on mobile](09-teacher-mobile.png)
 - [Teacher login](10-teacher-login.png)
 - [New week and topic selection](11-teacher-new-week.png)
+- [Simplified Grade 2 reading draft](12-simple-reading-draft.png)
