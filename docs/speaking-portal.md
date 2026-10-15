@@ -6,11 +6,15 @@ This is the `feature/speaking-portal` branch. The existing live quiz application
 
 Preview expires November 4, 2026 unless renewed.
 
+## Simplified curriculum update
+
+[Read all 40 revised Kannada paragraphs and questions](simple-kannada-readings.md). The four units are older film actors (Rajkumar era), Karnataka poets, Karnataka festivals, then Navaratri/Mysuru Dasara. Each targets Grade 2 reading with four or five short sentences and three direct questions. They are available as teacher-review drafts; previously published readings and grades remain unchanged.
+
 ## What changed
 
 Students type a class, first name plus last initial, and a preassigned four-digit PIN. Their portal shows one assigned Kannada paragraph. Previous published weeks are available through Previous weeks. There is no quiz, timer, recording, student scoring, or typing exercise.
 
-Teachers choose a topic and generate 10–15 different subjects within it (for example, ten different Karnataka actors). Each subject has one Kannada paragraph and four suggested oral questions. Generated material is always a draft. Teachers can edit paragraphs/questions, review the whole curriculum, and publish. Publication automatically assigns active students if assignments have not been set; teachers can also auto-assign or change assignments themselves. Each paragraph has at most two students; some paragraphs are unused when the roster is small. A class larger than twice the paragraph count must be split.
+Teachers choose a topic and generate 10–15 different subjects within it (for example, ten different Karnataka actors). Each subject has one Kannada paragraph and three suggested oral questions. Generated material is always a draft. Teachers can edit paragraphs/questions, review the whole curriculum, and publish. Publication automatically assigns active students if assignments have not been set; teachers can also auto-assign or change assignments themselves. Each paragraph has at most two students; some paragraphs are unused when the roster is small. A class larger than twice the paragraph count must be split.
 
 Teachers open Gradebook, choose a week, and click a student. The student's paragraph and instructor questions appear with a single 1–10 whole-number grade. The gradebook starts with the latest published week, shows Not presented where no grade exists, and includes each student's weekly history. Correcting a grade updates its current value and appends a server-side audit event. It is the current teacher grade, not a highest-quiz-attempt score.
 
@@ -33,7 +37,7 @@ Class: **Speaking Demo** (the server also accepts `speaking-demo`). Names are ca
 
 These are explicitly synthetic preview accounts. Use no real children in this shared preview. Teacher login uses the existing mock teacher email/password, shared privately with the owner. The ignored `speaking-test-accounts.local.json` contains the complete access list.
 
-Seeded curriculum is **hand-authored sample material**, not an actual OpenAI generation. The seed creates the current week, a previous week, and a future draft. Teachers should review language, facts, and reading difficulty before using any sample or generated content in a real class.
+Seeded curriculum is **hand-authored sample material**, not an actual OpenAI generation. The current seed creates four consecutive draft weeks in the requested topic order. The existing preview retains its previously published sample weeks for history testing. Teachers should review language, facts, and reading difficulty before using any sample or generated content in a real class.
 
 ## Test the flows
 
@@ -60,7 +64,7 @@ All preview services are hosted in Firebase, not on the developer's computer. Th
 
 `spWeeks` stores draft/published curriculum and student-to-paragraph assignments. `spGrades` stores the current score per student/week; `spGradeEvents` preserves grade changes. `spLimits` stores hashed rate-limit bucket IDs, counts, and expiration times. Login allows eight requests per name/class and 80 per source IP per 15 minutes; generation allows five requests per teacher per hour. Expired buckets are reused. These controls mitigate guessing but do not make four-digit PINs equivalent to strong passwords. The preview needs a broader privacy/access review before real-student rollout.
 
-The server does not send student names, PINs, assignments, or grades to OpenAI. Its request contains only the topic and paragraph count. Do not enter student personal information into the free-text topic. Generation uses the Responses API with strict structured output, `store: false`, and model `gpt-4.1`. Content validation checks count, unique titles, Kannada text, paragraph length, and 3–6 questions. This does not guarantee factual accuracy or Kannada quality; publication requires teacher review. No external factual-research tool is used. `store: false` does not itself promise zero provider retention; review OpenAI's applicable data policies before production use.
+The server does not send student names, PINs, assignments, or grades to OpenAI. Its request contains only the topic and paragraph count. The prompt targets Grade 2, 4–5 short sentences, about 20–45 words, and 3–4 concrete facts. Do not enter student personal information into the free-text topic. Generation uses the Responses API with strict structured output, `store: false`, and model `gpt-4.1`. Content validation checks count, unique titles, Kannada text, paragraph length, and 3–6 questions. This does not guarantee factual accuracy or Kannada quality; publication requires teacher review. No external factual-research tool is used. `store: false` does not itself promise zero provider retention; review OpenAI's applicable data policies before production use.
 
 The IAM and IAM Credentials APIs are enabled for managed signing. The runtime service account has token-creator permission scoped to itself for Firebase custom-token signing. No downloadable service-account private key was created.
 

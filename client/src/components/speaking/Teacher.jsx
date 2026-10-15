@@ -187,7 +187,7 @@ export default function Teacher() {
 }
 function NewWeek({ run, busy }) {
   const [date, setDate] = useState(currentWeek());
-  const [topic, setTopic] = useState("Movie stars of Karnataka");
+  const [topic, setTopic] = useState("Older Kannada film actors (Rajkumar era)");
   const [count, setCount] = useState(10);
   return (
     <details className="sp-panel sp-create">
@@ -220,10 +220,10 @@ function NewWeek({ run, busy }) {
             />
             <datalist id="topics">
               {[
-                "Dasara habba",
-                "Authors of Karnataka",
-                "Regions of Karnataka",
-                "Movie stars of Karnataka",
+                "Older Kannada film actors (Rajkumar era)",
+                "Poets of Karnataka",
+                "Festivals of Karnataka",
+                "Navaratri and Mysuru Dasara",
               ].map((t) => (
                 <option key={t}>{t}</option>
               ))}

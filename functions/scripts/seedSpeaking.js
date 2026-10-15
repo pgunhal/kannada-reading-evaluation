@@ -1,5 +1,5 @@
 const core = require("../speaking/core");
-const paragraphs = require("../speaking/samples");
+const curriculum = require("../speaking/curriculum");
 const accounts = [
   ["Ananya", "R", "1042"],
   ["Kiran", "S", "2083"],
@@ -48,7 +48,9 @@ async function seed(db, teacherUid) {
   }
   const monday = new Date();
   monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
-  for (const offset of [-7, 0, 7]) {
+  for (const [index, unit] of curriculum.entries()) {
+    const offset = index * 7;
+    const paragraphs = unit.paragraphs;
     const date = new Date(monday);
     date.setUTCDate(date.getUTCDate() + offset);
     const week = date.toISOString().slice(0, 10);
@@ -57,11 +59,11 @@ async function seed(db, teacherUid) {
       await ref.create({
         classId,
         week,
-        topic: "Movie stars of Karnataka",
+        topic: unit.topic,
         paragraphs: core.paragraphs(paragraphs),
         assignments: core.assign(students, paragraphs, () => 0),
         revision: 1,
-        status: offset > 0 ? "draft" : "published",
+        status: "draft",
         source: "hand-authored-preview",
         createdBy: teacherUid,
       });
